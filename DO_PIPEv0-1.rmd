@@ -1,0 +1,968 @@
+---
+title: "DO_PIPEv0.1"
+author: "Excel Que"
+date: "October 15, 2019"
+output: html_document
+---
+# README
+
+This is the latest version of the DO_PIPE qtl pipeline. The markdown file should be read alongside the DO_PIPE Instructional pdf. Several measures have been taken to simplify a sophisticated multi-arm process and reduce sources of user error, as long as the instructions are followed in order. Unless you already understand every line of code (you don't), do not skip over sections. Please repeat the following mantra before proceeding: "Ignorance is a choice". 
+
+
+# A note on a NAS analysis paradigm
+
+The inputs and outputs of QTL analysis are large (5-10 Gb). The movement and storage of files can be a limiting factor. This pipeline is built to run based on a pre-specified folder structure. This means that it can be run on the NAS where storage is not a limiting factor and file transfer is much faster. If desired, specific outputs from the pipeline can be downloaded from the NAS to a local computer for processing. As a final benefit, performing all runs on the NAS allows data to be shared amongst lab members.
+
+
+# Code Dump
+
+Write out and source in after everything is built
+
+```{r Code Dump}
+changeRN <- function(x){
+  if(any(is.null(rownames(x))) | any(is.na(rownames(x)))){
+    stop("No rownames, try again.")
+  }
+  viewID <- head(rownames(x), n = 5)
+  cat("First 5 Sample IDs...\n")
+  cat(viewID, sep = "\n")
+  altIDs <- "empty"
+  while(!altIDs %in% c("Y","N")){
+    altIDs <- toupper(
+    readline("Would you like to alter sample IDs(Y/N)? "))
+  }
+  if(altIDs == "Y"){
+    desig <- readline("Prefix sample IDs with...: ")
+    samp <- paste0(desig, viewID)
+    cat("IDs will now look like: \n")
+    cat(samp, sep = "\n")
+    conf1 <- toupper(readline("Confirm change (Y/N): "))
+  
+    if(conf1 == "Y"){
+      rownames(x) <- paste0(desig, rownames(x))
+      cat("IDs have been changed.\n")
+    }else{
+      cat("Aborting...\n
+          Please try again.")
+    }
+  }else{
+    cat("Returning unchanged.")
+    return(x)
+  }
+  return(x)
+}
+####################################################
+
+robustZmat <- function(phen, 
+                       rowFont = 2,
+                       colFont =2,
+                       margins = c(35,15),
+                       pdfWid = 100,
+                       pdfHei = 100,
+                       path = "./diagnostic/phenotypes/Outlier-FullPheno.pdf",
+                       zoom = FALSE,
+                       valSize = 1){
+  #Perform robust z-score transformation
+  robZ <- function(x, y){
+    zscoreMed <- (x[y]- median(x, 
+                               na.rm = T))/mad(x, 
+                                               na.rm = T)
+    return(zscoreMed)
+  }
+
+  #Apply to get one subject
+  outlist <- list()
+  for(i in seq_along(rownames(phen))){
+    desig <- rownames(phen)[i]
+    tmp <- apply(phen, 2, robZ,y = i)
+    outlist[[desig]] <- abs(tmp)
+  }
+  zMat <- as.matrix(do.call("rbind", outlist))
+  
+  #Clean for Inf values
+  cat("Removing columns with Inf values.\n")
+  zMat <- zMat[,!apply(zMat,2,function(x) any(is.infinite(x)))]
+  if(zoom == FALSE){
+    #We can set the RowSideColors using a vector, one initial fill followed by a which() or apply() statement to select the other color positions. 
+
+    #https://stackoverflow.com/questions/15351575/moving-color-key-in-r-heatmap-2-function-of-gplots-package - for formatting heatmaps
+
+    #Add rowside colors for 0, < 5, <10, +10
+    #RowSideColors <- rep("grey", nrow(zMat))
+    #RowSideColors[apply(zMat > 7,1,any)] <- "firebrick2"
+  
+    #Take the range from 3.5 to max(zMat) and cut into 3 pieces
+    outScale = quantile(seq(3.5, max(zMat, na.rm = T)))
+  
+    if(max(zMat, na.rm = T) < 3.5){
+      stop("Robust z-score detects no outliers in data.")
+    }
+  
+    colBreaks = c(seq(0,3.49,length=20),
+               seq(3.5,outScale[2],length=20),
+               seq(outScale[3],outScale[4],length=5),
+               seq(outScale[4]*1.01, max(zMat, na.rm = T),
+                   length = 5))
+
+
+    gradCol <- colorRampPalette(c("springgreen4", 
+                                 "yellow1",
+                                 "orange2",
+                                 "firebrick1"))(n=length(colBreaks)-1)
+
+    pdf(path, width = pdfWid, height = pdfHei)
+    par(mar=c(1,1,1,1))
+    heatmap.2(zMat,Rowv=NA, Colv=NA, 
+          dendrogram = "none",
+          col = gradCol,
+          breaks = colBreaks,
+          #RowSideColors = RowSideColors,
+          trace = "none",
+          key=TRUE, 
+          key.title = "",
+          lmat = rbind(c(0,0,0,4,0,0),
+                       c(0,1,1,1,1,1),
+                       c(0,1,1,1,1,1),
+                       c(0,1,1,1,1,1),
+                       c(2,1,1,1,1,1),
+                       c(0,1,1,1,1,1),
+                       c(0,1,1,1,1,1),
+                       c(0,0,0,3,0,0)),
+          lhei = c(0.2,1,1,1,1,1,1,0.1),
+          lwid = c(0.1,1,1,1,1,1),
+          margins = margins,
+          cexRow = rowFont,
+          cexCol = colFont)
+    dev.off()
+  }else{
+    if(max(zMat, na.rm = T) < 3.5){
+      stop("Robust z-score detects no outliers in data.")
+    }
+    subZmat <- zMat[apply(zMat > 7,1,any, na.rm = T),
+                apply(zMat > 7,2,any, na.rm = T)]
+    
+    outScale = quantile(seq(3.5, max(subZmat, na.rm = T)))
+  
+    if(max(subZmat, na.rm = T) < 3.5){
+      stop("Robust z-score detects no outliers in data.")
+    }
+  
+    colBreaks = c(seq(0,3.49,length=20),
+               seq(3.5,outScale[2],length=20),
+               seq(outScale[3],outScale[4],length=5),
+               seq(outScale[4]*1.01, max(subZmat, na.rm = T),
+                   length = 5))
+
+
+    gradCol <- colorRampPalette(c("springgreen4", 
+                                 "yellow1",
+                                 "orange2",
+                                 "firebrick1"))(n=length(colBreaks)-1)
+
+    pdf(path, width = pdfWid, height = pdfHei)
+    par(mar=c(1,1,1,1))
+    heatmap.2(subZmat,
+          cellnote = round(subZmat,2), #add values
+          notecol = "black", #value colors
+          notecex = valSize, #value sizes
+          Rowv=NA, Colv=NA, 
+          dendrogram = "none",
+          col = gradCol,
+          breaks = colBreaks,
+          #RowSideColors = RowSideColors,
+          trace = "none",
+          key=TRUE,
+          key.title = "",
+          lmat = rbind(c(0,0,0,4,0,0),
+                       c(0,1,1,1,1,1),
+                       c(0,1,1,1,1,1),
+                       c(0,1,1,1,1,1),
+                       c(2,1,1,1,1,1),
+                       c(0,1,1,1,1,1),
+                       c(0,1,1,1,1,1),
+                       c(0,0,0,3,0,0)),
+          lhei = c(0.2,1,1,1,1,1,1,0.1),
+          lwid = c(0.1,1,1,1,1,1),
+          margins = margins,
+          cexRow = rowFont,
+          cexCol = colFont)
+    dev.off()
+
+  }
+}
+
+
+# covCheck
+covCheck <- function(cov, phen,
+                     maxLev = 5,
+                     pdfWid = 100, 
+                     pdfHei = 100,
+                     margins = c(100,80),
+                     rowFont = 15,
+                     colFont = 10,                  path="./diagnostic/phenotypes/BatchEff_Pheno.pdf"){
+  #Ensure phen and covar samples are in the same order
+  cov <- cov[match(rownames(phen), rownames(cov)),]
+
+  if(all(rownames(cov) != rownames(phen))){
+    stop("Warning! Row Mismatch Error.")
+  }
+
+  dumboDrop <- function(df){
+    #If any variables are factors, convert them
+    if(any(sapply(cov, is.factor))){
+      cat("Converting factors to characters.\n")
+      cov[,sapply(cov,is.factor)] <- sapply(cov[,sapply(cov,is.factor)],as.character)
+    }
+    #Transform covar into dummy variables
+    dumDown <- function(x, maxLev = 5){
+      numLev <- length(unique(x))
+      #Takes in a column, asks how many unique entries 
+      if(numLev == 1 | numLev > maxLev){
+        return(NULL)
+      }else{
+        dVar <- seq(0,numLev - 1)
+        dumDF <- data.frame(var = unique(x), dVar = dVar)
+        for(i in 1:numLev){
+          x[x == dumDF[i,1]] <- dumDF[i,2]
+        }
+        return(as.numeric(x))
+      }
+    }
+    covarDum <- lapply(cov, dumDown, maxLev = maxLev)
+    covarDum <- as.data.frame(covarDum[!sapply(covarDum,
+                                             is.null)])
+    return(covarDum)
+  }
+
+  dumCovar <- dumboDrop(cov)
+
+
+  #Perform anova on each pheno for each covar
+  batchCheck <- function(x, y){
+    aovPval <- summary(aov(x ~ factor(y)))[[1]][1,5]
+    return(aovPval)
+  }
+
+  outlist <- list()
+  for(i in seq_along(colnames(dumCovar))){
+    desig <- colnames(dumCovar)[i]
+    tmp <- apply(phen, 2, batchCheck,y = dumCovar[,i])
+    outlist[[desig]] <- tmp
+  }
+
+  #lapply pdjust
+  outlist <- lapply(outlist, p.adjust, method = "BH")
+  batchMat <- as.matrix(do.call("rbind", outlist))
+
+
+  colBreaks = c(seq(0,0.05,length=1),
+              seq(0.06,1,length=2))
+
+
+  gradCol <- colorRampPalette(c("firebrick1",
+                              "gray85"))(n=2)
+
+  pdf(path,
+      width = pdfWid, height = pdfHei)
+  par(mar=c(1,1,1,1))
+  heatmap.2(batchMat,Rowv=NA, Colv=NA, 
+          dendrogram = "none",
+          col = gradCol,
+          breaks = colBreaks,
+          scale = "none",
+          #RowSideColors = RowSideColors,
+          trace = "none",
+          key=TRUE, 
+          symkey = F,
+          key.title = "",
+          lmat = rbind(c(0,0,0,4,0,0),
+                       c(0,1,1,1,1,1),
+                       c(2,1,1,1,1,1),
+                       c(0,1,1,1,1,1),
+                       c(0,0,0,3,0,0)),
+          lhei = c(0.2,0.5,0.5,0.5,0.1),
+          lwid = c(0.1,2,2,2,2,2),
+          margins = c(100,80),
+          cexRow = rowFont,
+          cexCol = colFont)
+  dev.off()
+}
+
+########################
+#Implement a try-catch that doesn't require database culling
+enrichrMod <- function (genes, databases = NULL, quiet = F) 
+{
+    if(quiet == F){
+      cat("Uploading data to Enrichr... ")
+    }
+    if (is.vector(genes)) {
+        temp <- POST(url = "http://amp.pharm.mssm.edu/Enrichr/enrich", 
+            body = list(list = paste(genes, collapse = "\n")))
+    }
+    else if (is.data.frame(genes)) {
+        temp <- POST(url = "http://amp.pharm.mssm.edu/Enrichr/enrich", 
+            body = list(list = paste(paste(genes[, 1], genes[, 
+                2], sep = ","), collapse = "\n")))
+    }
+    else {
+        warning("genes must be a vector of gene names or a dataframe with genes and score.")
+    }
+    GET(url = "http://amp.pharm.mssm.edu/Enrichr/share")
+    if(quiet == F){
+      cat("Done.\n")
+    }
+    dbs <- as.list(databases)
+    dfSAF <- options()$stringsAsFactors
+    options(stringsAsFactors = FALSE)
+    
+    result <- lapply(dbs, function(x) {
+        if(quiet == F){
+          cat("  Querying ", x, "... ", sep = "")
+        }
+        r <- GET(url = "http://amp.pharm.mssm.edu/Enrichr/export", 
+            query = list(file = "API", backgroundType = x))
+        r <- intToUtf8(r$content)
+        tc <- textConnection(r)
+        r <- read.table(tc, sep = "\t", header = TRUE, quote = "", fill = T)
+        close(tc)
+        if(quiet == F){
+          cat("Done.\n")
+        }  
+        return(r)
+    })
+    
+    options(stringsAsFactors = dfSAF)
+    if(quiet == F){
+      cat("Parsing results... ")
+    }
+    names(result) <- dbs
+    if(quiet == F){
+      cat("Done.\n")
+    }
+    
+    nullCull <- function(x){
+      #for each slot, check Adjusted.P.Value column
+      #Null if greater than 0.05
+      x <- x[x$Adjusted.P.value <= 0.05,-c(5,6)]
+    }
+    
+    res <- lapply(result, nullCull)
+    if(any(sapply(res,is.null))){
+      res <- res[sapply(res,is.null) != TRUE]
+    }
+    sigRes <- res[sapply(res, nrow) != 0]
+
+    outList <- list()
+    for(j in 1:length(sigRes)){
+      desig <- names(sigRes)[j]
+      outList[[j]] <- cbind(data.frame(Library = desig,
+                                       stringsAsFactors = F),
+                            sigRes[[j]])
+  
+    }
+    return(do.call("rbind",outList))
+}
+```
+
+
+# Zero Arm: Set up Project Environment
+
+In an empty project folder, place a copy of the DO_pipe markdown and run the Zero Arm chunks.
+
+Add the following input files into the ./inputs folder:
+
+  1. Final Report - must have the term "report" somewhere in the   file name. E.g. DOWL_finalreport.txt
+
+  2. MUGA Folder - either MM or GM based on your study 
+
+  3. Mouse_genes.sqlite - provided
+
+  4. Master Phenotype - must have the term "pheno" somewhere in   the file name. E.g. DOWL_masterPheno.csv. 
+
+This **must** be a cleaned csv, do this in a spreadsheet. The end goal is to create two CSVs, one with covariates called 'covar.csv' and one with phenotypes called 'pheno.csv' in the 'inputs-processed' folder. 
+
+This can be done any number of ways, but the code below fully processes a phenotype file of the following format:
+
+- csv format
+- sample IDs in the first column
+- NAs must be from the following list: ["na","NA","N/A",""]
+- No duplicate sample IDs
+- All columns the same length
+- columns of covariates start in the second column, phenotypes follow covariates
+- There MUST be a "sex" and "ngen" column (exact spelling) included as part of the covariates. 
+- *important* first row is empty except for two things:
+  --'covariate' label in B1 position
+  --'phenotype' label over first phenotype column
+  -- No merging or other extraneous formatting
+
+
+```{r install/load necessary packages}
+library(DBI)
+library(httr)
+library(qtl2)
+library(dplyr)
+library(gplots)
+library(dbplyr)
+library(stringr)
+library(RSQLite)
+library(enrichR)
+library(data.table)
+library(qtl2convert)
+```
+
+
+```{r Setup Project Environment}
+#Check if markdown is in project folder
+#getwd() 
+
+dir.create("./inputs")
+dir.create("./inputs-processed/genotypes", recursive = T)
+dir.create("./scan-inputs")
+dir.create("./outputs/data/peak-genes", recursive = T)
+dir.create("./outputs/data/enrichr-results")
+dir.create("./outputs/plots/lod", recursive = T)
+dir.create("./diagnostic/genotypes",recursive = T)
+dir.create("./diagnostic/phenotypes")
+
+#IMPORTANT: Designate your study prefix now
+prefix <- NULL
+while(is.null(prefix)){
+  cat("Enter a study prefix to proceed...\n")
+  prefix <- readline("Study Prefix: ")
+  cat("Study Prefix:", prefix)
+  saveRDS(prefix, file = "./inputs/prefix.rds")
+  if(prefix == ""){
+    cat("Don't just submit a blank, dum-dum.\n")
+    prefix <- NULL
+  }
+}
+
+```
+
+# First Arm: Phenotype Diagnostic
+
+```{r Pheno Process}
+phenPath <- list.files("./inputs/", pattern = "pheno", ignore.case = T, full.names = T)
+
+#Find the delineation between covariates and phenotypes
+phenStart <- which(read.csv(phenPath,
+                            nrows=1,
+                            fill = T, 
+                            header = FALSE) != "")[-1]-1
+
+#Pull in phenotype file
+mPhen <- read.csv(phenPath, 
+                  header = T,
+                  row.names = 1,
+                  na.strings = c("na","NA","N/A",""),
+                  skip = 1)
+
+mPhen <- changeRN(mPhen)
+
+#Check phenotype and covariate subsets
+if(!all(sapply(mPhen[,c(phenStart:ncol(mPhen))],is.numeric))){
+  stop("You were about to put non-numeric data into the phenotype matrix. SHAME.\n")
+}
+
+#Write out the covar
+write.csv(mPhen[,c(1:phenStart-1)], file = paste0("./inputs-processed/",prefix,"_covar.csv"), row.names = T)
+
+#Write out the pheno
+write.csv(mPhen[,c(phenStart:ncol(mPhen))], file = paste0("./inputs-processed/",prefix,"_pheno.csv"), row.names = TRUE)
+```
+ 
+
+```{r Pheno Diag}
+
+phen <- read.csv(list.files("./inputs-processed/",
+                            pattern = "pheno.csv",
+                            full.names = T),
+                 na.strings = c("na","NA","N/A",""),
+                 row.names = 1)
+
+cov <- read.csv(list.files("./inputs-processed/",
+                            pattern = "covar.csv",
+                            full.names = T), 
+                na.strings = c("na","NA","N/A",""),
+                row.names = 1,
+                stringsAsFactors = T)
+
+
+# Plot 1 - Full Pheno - Robust Z-score Matrix
+robustZmat(phen,
+           path = './diagnostic/phenotypes/Outlier-FullPheno.pdf',
+           rowFont = 1,
+           colFont = 10,
+           margins = c(150,45),
+           pdfWid = 150,
+           pdfHei = 150)
+
+# Plot 2 - Zoomed Outliers - Robust Z-score Matrix
+robustZmat(phen,
+           path = './diagnostic/phenotypes/Outlier-ZoomPheno.pdf',
+           rowFont = 10,
+           colFont = 20,
+           zoom = T,
+           valSize = 20,
+           margins = c(100,60))
+
+# Plot 3 - Batch Effect Diagnostic
+covCheck(cov, phen,
+         path = './diagnostic/phenotypes/BatchEff_Pheno.pdf',
+         pdfWid = 100,
+         pdfHei = 100,
+         margins = c(100,80),
+         rowFont = 15, 
+         colFont = 10)
+
+```
+
+# Second Arm: Genotype Diagnostic
+
+```{r Process Final Report}
+#Enter path to the final report and code file
+reportPath = list.files("./inputs/", pattern = "report",
+                        ignore.case = T, full.names = T)
+  
+codePath = "./inputs/GM/GM_allelecodes.csv"
+prefix <- readRDS("./inputs/prefix.rds")
+
+#Run the following code
+#Load codes
+codes <- read.csv(codePath, skip = 3, stringsAsFactors = F) 
+
+#Check where the metadata ends
+tmp <- readLines(reportPath,n = 20)
+skip = grep("^SNP Name\tSample",tmp) - 1
+rm(tmp)
+
+if(skip == 0){
+  stop("Error: No headers detected within 20 lines.
+\nCheck file Final Report and try again.")
+}
+
+cat("\nReading in Final Report. Please wait...\n")
+finrep <- fread(reportPath, data.table = FALSE, skip = skip)
+finrep <- finrep[finrep[[1]] %in% codes[[1]],]
+
+
+viewID <- head(unique(finrep[[2]]), n = 5)
+cat("First 5 Sample IDs...\n")
+cat(viewID, sep = "\n")
+
+altIDs <- "empty"
+while(!altIDs %in% c("Y","N")){
+  altIDs <- toupper(
+    readline("Would you like to alter sample IDs(Y/N)? "))
+}
+
+if(altIDs == "Y"){
+    conf1 = "N"
+    cat("Appending Study Prefix...")
+    cat("IDs will now look like: \n")
+    cat(paste0(prefix,"_", viewID), sep = "\n")
+    conf1 <- toupper(readline("Confirm change (Y/N): ")) 
+    if(conf1 == "N"){  
+        #Manual entry 
+        while(conf1 == "N"){
+            cat("Manual entry...")
+            desig <- readline("Prefix sample IDs with...: ")
+            cat("IDs will now look like: \n")
+            cat(paste0(desig, viewID), sep = "\n")
+            conf1 <- toupper(readline("Confirm change (Y/N): "))
+            }
+        finrep[[2]] <- paste0(desig,finrep[[2]])
+        cat("IDs have been changed.\n")
+    }
+    else{  
+      finrep[[2]] <- paste0(prefix,"_",finrep[[2]])
+      cat("IDs have been changed.\n")
+    }
+}else{
+  cat("Keeping current sample IDs\n")
+}
+altIDs <- conf1 <- ""
+
+cat("Writing out processed Final Report. This process takes a while. Please wait...\n")
+write.table(finrep, file = paste0("./inputs-processed/",prefix,"_processed_finrep.txt"), sep = "\t", row.names = FALSE)
+rm(finrep) #remove finrep from environment
+cat("Done.")
+```
+
+
+
+```{r Generate Genotype Files}
+#Set the project prefix
+prefix <- readRDS("./inputs/prefix.rds")
+
+# input files with GigaMUGA genotypes
+#  - files can be gzipped (".gz" extension)
+ifiles <- paste0("./inputs-processed/",prefix,"_processed_finrep.txt")
+
+# file "stem" for output files
+# output files will be like "gm4qtl2_geno19.csv"
+ostem <- paste0("./inputs-processed/genotypes/", prefix)
+
+# cbind, replacing matching columns with second set and adding unique ones
+cbind_smother <- function(mat1, mat2){
+  cn1 <- colnames(mat1)
+  cn2 <- colnames(mat2)
+  m <- (cn2 %in% cn1)
+  if(any(m)){
+    mat1[,cn2[m]] <- mat2[,cn2[m],drop=FALSE]
+    if(any(!m)){
+      mat1 <- cbind(mat1, mat2[,cn2[!m],drop=FALSE])
+    }
+  }
+  else{
+      mat1 <- cbind(mat1, mat2)
+  }
+    return(mat1)
+}
+
+full_geno <- NULL
+cat(" -Reading data\n")
+g <- fread(ifiles,data.table = FALSE)
+g <- g[,c(1:4)]
+samples <- unique(g[,"Sample ID"])
+
+# matrix to contain the genotypes
+geno <- matrix(nrow=nrow(codes), ncol=length(samples))
+dimnames(geno) <- list(codes[,"marker"], samples)
+
+# fill in matrix
+cat(" -Reorganizing data\n")
+for(i in seq(along=samples)) {
+    if(i==round(i,-1)){
+      cat(" --Sample", i, "of",length(samples), "\n")
+    } 
+    wh <- (g[,"Sample ID"]==samples[i])
+    geno[g[wh,"SNP Name"],i] <- paste0(g[wh,
+                                         "Allele1 - Forward"],
+                                       g[wh,
+                                         "Allele2 - Forward"])
+}
+
+cat(" -Encode genotypes\n")
+geno <- qtl2convert::encode_geno(geno,
+                              as.matrix(codes[,c("A","B")])) #All H's
+if(is.null(full_geno)) {
+    full_geno <- geno
+} else {
+    # if any columns in both, use those from second set
+    full_geno <- cbind_smother(full_geno, geno)
+}
+
+rm(g)
+
+#write data to chromosome-specific files
+cat(" -Writing genotypes\n")
+for(chr in c(1:19,"X","Y","M")) {
+    mar <- codes[codes$chr==chr,"marker"]
+    g <- full_geno[mar,]
+    cat(" -Writing Chr", chr, "genotype file\n")
+    qtl2convert::write2csv(cbind(marker=rownames(g),g),
+                           paste0(ostem, "_geno", chr, ".csv"),
+                           paste0(ostem, " genotypes for chr ", chr),
+                           overwrite=TRUE)
+}
+
+#Remove intermediates after genotypes files are generated
+rm(codes, full_geno, g, geno, wh)
+```
+
+```{r Create json}
+#Note on the relative paths in this chunk: write_control_file() uses the .json location as the starting path. Paths to inputs are changed according.
+chr <- c(1:19, "X")
+write_control_file(paste0("./inputs-processed/",prefix,"_control.json"),
+                   crosstype="do",
+                   description=paste0(prefix,"_QTL_project"),
+                  founder_geno_file=paste0("../inputs/GM/GM_foundergeno",
+                                            chr, ".csv"),
+                   founder_geno_transposed=TRUE,
+                   gmap_file=paste0("../inputs/GM/GM_gmap", 
+                                    chr, ".csv"),
+                   pmap_file=paste0("../inputs/GM/GM_pmap", 
+                                    chr, ".csv"),
+                   geno_file=paste0("genotypes/",prefix,"_geno", chr, ".csv"),
+                   geno_transposed=TRUE,
+                   geno_codes=list(A=1, H=2, B=3),
+                   xchr="X",
+                   pheno_file=paste0(prefix,"_pheno.csv"),
+                   covar_file=paste0(prefix,"_covar.csv"),
+                   sex_covar="sex",
+                   sex_codes=c("F" ="Female", "M" ="Male"),
+                   overwrite=TRUE,
+                   crossinfo_covar="ngen")
+```
+
+```{r Generate Cross2}
+#Generate cross
+cross2 <- read_cross2(paste0("./inputs-processed/",
+                             prefix,
+                             "_control.json"))
+#Save as RDS
+saveRDS(cross2, file=paste0("./scan-inputs/",prefix,"_cross2.rds"))
+
+#Write out the cross summary
+sink("./diagnostic/cross-summary.txt")
+cross2
+sink()
+```
+
+```{r Generate Covariate Object}
+cross2 <- readRDS("./scan-inputs/DOWL_cross2.rds")
+
+selCov <- select.list(colnames(cross2$covar), preselect = NULL, 
+            multiple = TRUE,
+            title = "Choose your covariates:")
+
+covar <- model.matrix(~ ., data = cross2$covar[selCov] )[, -1]
+rownames(covar) <- rownames(cross2$covar)
+
+if(all(apply(covar, 2 ,function(x)length(unique(x))) <= 2)){
+  colnames(covar) <- selCov
+}else{
+  cat("You have covariates with more than 2 levels, you can rename them now if you want.")
+}
+
+saveRDS(covar, file = paste0("./scan-inputs/",prefix,"_covar.rds"))
+```
+
+# Fifth Arm: Genome Scan and Results Processing
+
+```{r Run Scan}
+library(qtl2)
+prefix <- readRDS("./inputs/prefix.rds")
+apr <- readRDS(paste0("./scan-inputs/",prefix,"_apr_Clean.rds"))
+cross <- readRDS(paste0("./scan-inputs/",prefix,"_cross_Clean.rds"))
+kLOCO <- readRDS(paste0("./scan-inputs/",prefix,"_kLOCO_Clean.rds"))
+covar <- readRDS(paste0("./scan-inputs/",prefix,"_covar.rds"))
+permThresh <- readRDS(paste0("./scan-inputs/",prefix,"_permThresh.rds"))
+
+
+#If your study has differing sexes, they must be submitted as a covariate AND an Xcovar argument
+#Scan takes approx 4 sec/phenotype at 6 cores
+system.time(
+scanOut <- scan1(apr, cross$pheno, 
+                 kinship = kLOCO, 
+                 addcovar = covar, 
+                 Xcovar = get_x_covar(cross),
+                 cores = 6)
+)
+
+saveRDS(scanOut, file = paste0("./outputs/data/",prefix, "_scanOut.rds"))
+```
+
+
+The "Scan Outfile" reports the LOD scores of each phenotypes at each SNP. If we order SNPs and lay them along an x-axis and plot the LOD scores at each SNP on the y-axis, we can imagine sharp peaks at SNPs where there is significant association between the SNP allele probs and the phenotype. These peaks are our QTL. 
+
+We use the find_peaks() function to pull the top QTL from each chromosome. Conventionally, we assume that a significant LOD score has an LOD of 7 or greater. Later on, we will learn how to empirically derive the LOD threshold associated with a certain p-value using **Permutation Testing**. 
+
+We use a physical map in our peak calculations, which gives us results in megabase pairs, as opposed to the unwieldier centiMorgans.
+
+We also have the choice of selecting a method of calculating confidence intervals.
+
+1. 95% Bayesian Credible (prob = 0.95)
+2. Drop LOD (drop = 1.8)
+
+Both methods are acceptable - Bayesian Credible Interval is better recognized but difficult to explain. Drop LOD is simple to explain but less recognized outside of QTL specialists.
+
+This protocol will be using the dropLOD, which bounds the confidence interval where LOD drops more than 1.8 LOD from the peak. 
+Source: https://www.genetics.org/content/174/1/481.long
+
+```{r Find QTL}
+#Select threshold level: 1 = 63% (associative), 2 = 95% (significant), 3 = 99% (highly significant)
+#If different thresholds are required, they can be generated from the full permutation matrix
+permMat <- readRDS("./scan-inputs/DOWL_fullPerm.rds")
+permThresh <- apply(permMat, 2, quantile, probs = c(0.63, 0.9, 0.95, 0.99))
+
+#IMPORTANT: align the order of the permThresh columns with the scanOut columns
+permThresh <- permThresh[,match(colnames(scanOut), colnames(permThresh))]
+table(colnames(permThresh) == colnames(scanOut))
+
+for(i in 1:nrow(permThresh)){
+  desig <- paste0("signif_",gsub("%","",rownames(permThresh)[i]))
+  thresh = permThresh[i,]
+  peaks <- find_peaks(scanOut, cross$pmap,
+                    threshold = thresh,
+                    drop = 1.8)
+  for(j in 1:nrow(permThresh)){
+    desig2 <- paste0("signif_",gsub("%","",rownames(permThresh)[j]))
+    peaks[[desig2]] <- permThresh[j,][match(peaks$lodcolumn, colnames(permThresh))]
+  }
+  if(nrow(peaks) == 0){
+    next()
+  }
+  saveRDS(peaks, file = paste0("./outputs/data/", prefix, "_peaks_",desig,".rds"))
+}
+
+```
+
+
+```{r Visualize all peaks}
+#Choose a peak file to analyze. 
+peaks <- readRDS("./outputs/data/DOWL_peaks_signif_63.rds")
+
+#Remove x chromosome peaks, then loop plot from the outfile
+peaks_noX <- peaks[peaks$chr != "X",]
+
+cat("Generating",nrow(peaks_noX),"plots...")
+pb <- txtProgressBar(min = 1, 
+                     max = nrow(peaks_noX), 
+                     style = 3)
+
+for(i in 1:nrow(peaks_noX)){
+  tmp <- peaks_noX[i,]
+  desig <- paste0(tmp$lodcolumn,"-",
+                  "chr",tmp$chr,
+                  "-",floor(tmp$ci_lo),
+                  "-",ceiling(tmp$ci_hi))
+  pheno <- which(colnames(scanOut) == tmp$lodcolumn)
+  chr <- tmp$chr
+  png(paste0("./outputs/plots/lod/",desig,".png"),
+      res = 300,
+      height = 1600,
+      width = 2400)
+  plot_scan1(scanOut, map = cross$pmap, 
+             lodcolumn = pheno,
+             chr = chr,
+             col = "dodgerblue2",
+             bgcol="white",
+             main = tmp$lodcolumn,
+             cex = 1.5)
+  dev.off()
+  setTxtProgressBar(pb, i)
+}
+close(pb)
+
+cat("Generating Global Peak Summary Plot...")
+png(paste0("./outputs/plots/lod/",prefix,"_peakSummary",".png"),
+      res = 300,
+      height = 2400,
+      width = 3000)
+par(mar = c(4,15,4,2))
+plot_peaks(peaks_noX, 
+           map = cross$pmap, 
+           col = c("dodgerblue3"), 
+           lwd = 3,
+           cex.lab = 0.5,
+           tick.height = 0.8,
+           gap = 0, 
+           main = "Global Peak Summary",
+           alt = "white")
+box()
+dev.off()
+```
+
+
+# 8.) Find Candidate Genes
+
+For finding candidate genes within the QTL, we use the full set of Mouse gene annotations made available at:
+
+https://kbroman.org/qtl2/assets/vignettes/user_guide.html#snp_association
+
+Direct Link: 
+https://doi.org/10.6084/m9.figshare.5280238.v6
+
+We query the database, looking for all non-predicted genes within the confidence interval of the peaks.
+
+```{r MGI Gene Query}
+#MGI Database lookup - save RDSes of all genes within the CI of all peaks
+
+#Submit peaks with CI - trim to the desired top x candidates
+
+#Open a connection to the SQLdb
+con <- dbConnect(SQLite(), "./inputs/mouse_genes.sqlite")
+genes <- tbl(con, "genes")
+
+inPeaks <- top_n(peaks_noX, 10, lod)
+
+for(i in 1:nrow(inPeaks)){
+  tmp <- inPeaks[i,]
+  tmp_chr <- as.character(tmp$chr)
+  tmp_start <- tmp$ci_lo
+  tmp_stop <- tmp$ci_hi
+  desig <- paste0("peak",i,"-",tmp$lodcolumn,"-",
+                  "chr",tmp$chr,
+                  "-",floor(tmp$ci_lo),
+                  "-",ceiling(tmp$ci_hi))
+  if(tmp$pos < tmp_start | tmp$pos > tmp_stop){
+    stop("Whoa there, marker isn't within CI!")
+  }
+ 
+ 
+  lookUp <- genes %>%  
+    filter(chr == tmp_chr &
+           type == "gene" &
+           source == "MGI" &
+           !str_detect(Name, "Gm") &    
+           !str_detect(str_to_lower(description), 
+                       "riken") &    
+           start > tmp_start*10^6 &
+           stop < tmp_stop*10^6) %>% #Get your rows
+    select(-ID, 
+           -score, 
+           -phase, 
+           -Parent, 
+           -Dbxref, 
+           -gene_id) %>% #Get your columns
+    collect()
+  saveRDS(lookUp, 
+          file =paste0("./outputs/data/peak-genes/",
+                       desig,".rds"))
+}
+#Close database connection
+dbDisconnect(con)
+```
+
+
+# 9.) Enrichr Query 
+
+A structural variant of any one of the genes within the QTL could be responsible for the variance in phenotypic expression. It could also be multiple genes working together. 
+
+The final step in our QTL pipeline is to check if any of the genes within our QTL are involved in (aka "enriched for") any validated gene sets. This can link genes to genomes, biological pathways, metabolites, drugs, diseases, microbes, and chemical compunds. 
+
+We access the Ma'ayan Laboratory's toolm Enrichr through the enrichR package, which queries multiple gene databases looking for gene set enrichment. 
+
+```{r enrichR Query}
+#Build custom database query list
+dbs <- as.character(listEnrichrDbs()[["libraryName"]])
+dbNonGrata <- c("GeneSigDB",
+                "GTEx_Tissue_Sample_Gene_Expression_Profiles_down",
+                "GTEx_Tissue_Sample_Gene_Expression_Profiles_up",  
+                "MSigDB_Computational",
+                "NIH_Funded_PIs_2017_AutoRIF_ARCHS4_Predictions",
+                "NIH_Funded_PIs_2017_GeneRIF_ARCHS4_Predictions",
+                "DisGeNET",
+                "SubCell_BarCode",
+                "Chromosome_Location_hg19",
+                "DSigDB",
+                "Data_Acquisition_Method_Most_Popular_Genes",
+                "Allen_Brain_Atlas_up",
+                "Old_CMAP_up",
+                "Old_CMAP_down"
+                )
+dbs <- dbs[!dbs %in% dbNonGrata] #errors with dbGaP and 
+
+#Loop through each file in peakGenes, query enrichr
+peakCount <- length(list.files("./outputs/data/peak-genes/"))
+peakFiles <- list.files("./outputs/data/peak-genes/", 
+                    full.names = TRUE)
+
+cat("Querying",peakCount,"QTL...")
+pb <- txtProgressBar(min = 0, 
+                     max = peakCount, 
+                     style = 3)
+for(i in seq_along(peakFiles)){
+  tmp <- readRDS(peakFiles[i])
+  lab <- paste0(gsub(".rds","",
+                       basename(peakFiles[i])),"_enrich.rds")
+  genes <- tmp$Name
+  enriched <- enrichrMod(genes, dbs, quiet = TRUE)
+  saveRDS(enriched, file = paste0("./outputs/data/enrichr-results/",lab))
+  setTxtProgressBar(pb, i)
+}
+close(pb)
+```
+
