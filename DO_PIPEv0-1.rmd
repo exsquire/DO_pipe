@@ -13,390 +13,9 @@ This is the latest version of the DO_PIPE qtl pipeline. The markdown file should
 
 The inputs and outputs of QTL analysis are large (5-10 Gb). The movement and storage of files can be a limiting factor. This pipeline is built to run based on a pre-specified folder structure. This means that it can be run on the NAS where storage is not a limiting factor and file transfer is much faster. If desired, specific outputs from the pipeline can be downloaded from the NAS to a local computer for processing. As a final benefit, performing all runs on the NAS allows data to be shared amongst lab members.
 
+# Install/Load Required Packages
 
-# Code Dump
-
-Write out and source in after everything is built
-
-```{r Code Dump}
-changeRN <- function(x){
-  if(any(is.null(rownames(x))) | any(is.na(rownames(x)))){
-    stop("No rownames, try again.")
-  }
-  viewID <- head(rownames(x), n = 5)
-  cat("First 5 Sample IDs...\n")
-  cat(viewID, sep = "\n")
-  altIDs <- "empty"
-  while(!altIDs %in% c("Y","N")){
-    altIDs <- toupper(
-    readline("Would you like to alter sample IDs(Y/N)? "))
-  }
-  if(altIDs == "Y"){
-    desig <- readline("Prefix sample IDs with...: ")
-    samp <- paste0(desig, viewID)
-    cat("IDs will now look like: \n")
-    cat(samp, sep = "\n")
-    conf1 <- toupper(readline("Confirm change (Y/N): "))
-  
-    if(conf1 == "Y"){
-      rownames(x) <- paste0(desig, rownames(x))
-      cat("IDs have been changed.\n")
-    }else{
-      cat("Aborting...\n
-          Please try again.")
-    }
-  }else{
-    cat("Returning unchanged.")
-    return(x)
-  }
-  return(x)
-}
-####################################################
-
-robustZmat <- function(phen, 
-                       rowFont = 2,
-                       colFont =2,
-                       margins = c(35,15),
-                       pdfWid = 100,
-                       pdfHei = 100,
-                       path = "./diagnostic/phenotypes/Outlier-FullPheno.pdf",
-                       zoom = FALSE,
-                       valSize = 1){
-  #Perform robust z-score transformation
-  robZ <- function(x, y){
-    zscoreMed <- (x[y]- median(x, 
-                               na.rm = T))/mad(x, 
-                                               na.rm = T)
-    return(zscoreMed)
-  }
-
-  #Apply to get one subject
-  outlist <- list()
-  for(i in seq_along(rownames(phen))){
-    desig <- rownames(phen)[i]
-    tmp <- apply(phen, 2, robZ,y = i)
-    outlist[[desig]] <- abs(tmp)
-  }
-  zMat <- as.matrix(do.call("rbind", outlist))
-  
-  #Clean for Inf values
-  cat("Removing columns with Inf values.\n")
-  zMat <- zMat[,!apply(zMat,2,function(x) any(is.infinite(x)))]
-  if(zoom == FALSE){
-    #We can set the RowSideColors using a vector, one initial fill followed by a which() or apply() statement to select the other color positions. 
-
-    #https://stackoverflow.com/questions/15351575/moving-color-key-in-r-heatmap-2-function-of-gplots-package - for formatting heatmaps
-
-    #Add rowside colors for 0, < 5, <10, +10
-    #RowSideColors <- rep("grey", nrow(zMat))
-    #RowSideColors[apply(zMat > 7,1,any)] <- "firebrick2"
-  
-    #Take the range from 3.5 to max(zMat) and cut into 3 pieces
-    outScale = quantile(seq(3.5, max(zMat, na.rm = T)))
-  
-    if(max(zMat, na.rm = T) < 3.5){
-      stop("Robust z-score detects no outliers in data.")
-    }
-  
-    colBreaks = c(seq(0,3.49,length=20),
-               seq(3.5,outScale[2],length=20),
-               seq(outScale[3],outScale[4],length=5),
-               seq(outScale[4]*1.01, max(zMat, na.rm = T),
-                   length = 5))
-
-
-    gradCol <- colorRampPalette(c("springgreen4", 
-                                 "yellow1",
-                                 "orange2",
-                                 "firebrick1"))(n=length(colBreaks)-1)
-
-    pdf(path, width = pdfWid, height = pdfHei)
-    par(mar=c(1,1,1,1))
-    heatmap.2(zMat,Rowv=NA, Colv=NA, 
-          dendrogram = "none",
-          col = gradCol,
-          breaks = colBreaks,
-          #RowSideColors = RowSideColors,
-          trace = "none",
-          key=TRUE, 
-          key.title = "",
-          lmat = rbind(c(0,0,0,4,0,0),
-                       c(0,1,1,1,1,1),
-                       c(0,1,1,1,1,1),
-                       c(0,1,1,1,1,1),
-                       c(2,1,1,1,1,1),
-                       c(0,1,1,1,1,1),
-                       c(0,1,1,1,1,1),
-                       c(0,0,0,3,0,0)),
-          lhei = c(0.2,1,1,1,1,1,1,0.1),
-          lwid = c(0.1,1,1,1,1,1),
-          margins = margins,
-          cexRow = rowFont,
-          cexCol = colFont)
-    dev.off()
-  }else{
-    if(max(zMat, na.rm = T) < 3.5){
-      stop("Robust z-score detects no outliers in data.")
-    }
-    subZmat <- zMat[apply(zMat > 7,1,any, na.rm = T),
-                apply(zMat > 7,2,any, na.rm = T)]
-    
-    outScale = quantile(seq(3.5, max(subZmat, na.rm = T)))
-  
-    if(max(subZmat, na.rm = T) < 3.5){
-      stop("Robust z-score detects no outliers in data.")
-    }
-  
-    colBreaks = c(seq(0,3.49,length=20),
-               seq(3.5,outScale[2],length=20),
-               seq(outScale[3],outScale[4],length=5),
-               seq(outScale[4]*1.01, max(subZmat, na.rm = T),
-                   length = 5))
-
-
-    gradCol <- colorRampPalette(c("springgreen4", 
-                                 "yellow1",
-                                 "orange2",
-                                 "firebrick1"))(n=length(colBreaks)-1)
-
-    pdf(path, width = pdfWid, height = pdfHei)
-    par(mar=c(1,1,1,1))
-    heatmap.2(subZmat,
-          cellnote = round(subZmat,2), #add values
-          notecol = "black", #value colors
-          notecex = valSize, #value sizes
-          Rowv=NA, Colv=NA, 
-          dendrogram = "none",
-          col = gradCol,
-          breaks = colBreaks,
-          #RowSideColors = RowSideColors,
-          trace = "none",
-          key=TRUE,
-          key.title = "",
-          lmat = rbind(c(0,0,0,4,0,0),
-                       c(0,1,1,1,1,1),
-                       c(0,1,1,1,1,1),
-                       c(0,1,1,1,1,1),
-                       c(2,1,1,1,1,1),
-                       c(0,1,1,1,1,1),
-                       c(0,1,1,1,1,1),
-                       c(0,0,0,3,0,0)),
-          lhei = c(0.2,1,1,1,1,1,1,0.1),
-          lwid = c(0.1,1,1,1,1,1),
-          margins = margins,
-          cexRow = rowFont,
-          cexCol = colFont)
-    dev.off()
-
-  }
-}
-
-
-# covCheck
-covCheck <- function(cov, phen,
-                     maxLev = 5,
-                     pdfWid = 100, 
-                     pdfHei = 100,
-                     margins = c(100,80),
-                     rowFont = 15,
-                     colFont = 10,                  path="./diagnostic/phenotypes/BatchEff_Pheno.pdf"){
-  #Ensure phen and covar samples are in the same order
-  cov <- cov[match(rownames(phen), rownames(cov)),]
-
-  if(all(rownames(cov) != rownames(phen))){
-    stop("Warning! Row Mismatch Error.")
-  }
-
-  dumboDrop <- function(df){
-    #If any variables are factors, convert them
-    if(any(sapply(cov, is.factor))){
-      cat("Converting factors to characters.\n")
-      cov[,sapply(cov,is.factor)] <- sapply(cov[,sapply(cov,is.factor)],as.character)
-    }
-    #Transform covar into dummy variables
-    dumDown <- function(x, maxLev = 5){
-      numLev <- length(unique(x))
-      #Takes in a column, asks how many unique entries 
-      if(numLev == 1 | numLev > maxLev){
-        return(NULL)
-      }else{
-        dVar <- seq(0,numLev - 1)
-        dumDF <- data.frame(var = unique(x), dVar = dVar)
-        for(i in 1:numLev){
-          x[x == dumDF[i,1]] <- dumDF[i,2]
-        }
-        return(as.numeric(x))
-      }
-    }
-    covarDum <- lapply(cov, dumDown, maxLev = maxLev)
-    covarDum <- as.data.frame(covarDum[!sapply(covarDum,
-                                             is.null)])
-    return(covarDum)
-  }
-
-  dumCovar <- dumboDrop(cov)
-
-
-  #Perform anova on each pheno for each covar
-  batchCheck <- function(x, y){
-    aovPval <- summary(aov(x ~ factor(y)))[[1]][1,5]
-    return(aovPval)
-  }
-
-  outlist <- list()
-  for(i in seq_along(colnames(dumCovar))){
-    desig <- colnames(dumCovar)[i]
-    tmp <- apply(phen, 2, batchCheck,y = dumCovar[,i])
-    outlist[[desig]] <- tmp
-  }
-
-  #lapply pdjust
-  outlist <- lapply(outlist, p.adjust, method = "BH")
-  batchMat <- as.matrix(do.call("rbind", outlist))
-
-
-  colBreaks = c(seq(0,0.05,length=1),
-              seq(0.06,1,length=2))
-
-
-  gradCol <- colorRampPalette(c("firebrick1",
-                              "gray85"))(n=2)
-
-  pdf(path,
-      width = pdfWid, height = pdfHei)
-  par(mar=c(1,1,1,1))
-  heatmap.2(batchMat,Rowv=NA, Colv=NA, 
-          dendrogram = "none",
-          col = gradCol,
-          breaks = colBreaks,
-          scale = "none",
-          #RowSideColors = RowSideColors,
-          trace = "none",
-          key=TRUE, 
-          symkey = F,
-          key.title = "",
-          lmat = rbind(c(0,0,0,4,0,0),
-                       c(0,1,1,1,1,1),
-                       c(2,1,1,1,1,1),
-                       c(0,1,1,1,1,1),
-                       c(0,0,0,3,0,0)),
-          lhei = c(0.2,0.5,0.5,0.5,0.1),
-          lwid = c(0.1,2,2,2,2,2),
-          margins = c(100,80),
-          cexRow = rowFont,
-          cexCol = colFont)
-  dev.off()
-}
-
-########################
-#Implement a try-catch that doesn't require database culling
-enrichrMod <- function (genes, databases = NULL, quiet = F) 
-{
-    if(quiet == F){
-      cat("Uploading data to Enrichr... ")
-    }
-    if (is.vector(genes)) {
-        temp <- POST(url = "http://amp.pharm.mssm.edu/Enrichr/enrich", 
-            body = list(list = paste(genes, collapse = "\n")))
-    }
-    else if (is.data.frame(genes)) {
-        temp <- POST(url = "http://amp.pharm.mssm.edu/Enrichr/enrich", 
-            body = list(list = paste(paste(genes[, 1], genes[, 
-                2], sep = ","), collapse = "\n")))
-    }
-    else {
-        warning("genes must be a vector of gene names or a dataframe with genes and score.")
-    }
-    GET(url = "http://amp.pharm.mssm.edu/Enrichr/share")
-    if(quiet == F){
-      cat("Done.\n")
-    }
-    dbs <- as.list(databases)
-    dfSAF <- options()$stringsAsFactors
-    options(stringsAsFactors = FALSE)
-    
-    result <- lapply(dbs, function(x) {
-        if(quiet == F){
-          cat("  Querying ", x, "... ", sep = "")
-        }
-        r <- GET(url = "http://amp.pharm.mssm.edu/Enrichr/export", 
-            query = list(file = "API", backgroundType = x))
-        r <- intToUtf8(r$content)
-        tc <- textConnection(r)
-        r <- read.table(tc, sep = "\t", header = TRUE, quote = "", fill = T)
-        close(tc)
-        if(quiet == F){
-          cat("Done.\n")
-        }  
-        return(r)
-    })
-    
-    options(stringsAsFactors = dfSAF)
-    if(quiet == F){
-      cat("Parsing results... ")
-    }
-    names(result) <- dbs
-    if(quiet == F){
-      cat("Done.\n")
-    }
-    
-    nullCull <- function(x){
-      #for each slot, check Adjusted.P.Value column
-      #Null if greater than 0.05
-      x <- x[x$Adjusted.P.value <= 0.05,-c(5,6)]
-    }
-    
-    res <- lapply(result, nullCull)
-    if(any(sapply(res,is.null))){
-      res <- res[sapply(res,is.null) != TRUE]
-    }
-    sigRes <- res[sapply(res, nrow) != 0]
-
-    outList <- list()
-    for(j in 1:length(sigRes)){
-      desig <- names(sigRes)[j]
-      outList[[j]] <- cbind(data.frame(Library = desig,
-                                       stringsAsFactors = F),
-                            sigRes[[j]])
-  
-    }
-    return(do.call("rbind",outList))
-}
-```
-
-
-# Zero Arm: Set up Project Environment
-
-In an empty project folder, place a copy of the DO_pipe markdown and run the Zero Arm chunks.
-
-Add the following input files into the ./inputs folder:
-
-  1. Final Report - must have the term "report" somewhere in the   file name. E.g. DOWL_finalreport.txt
-
-  2. MUGA Folder - either MM or GM based on your study 
-
-  3. Mouse_genes.sqlite - provided
-
-  4. Master Phenotype - must have the term "pheno" somewhere in   the file name. E.g. DOWL_masterPheno.csv. 
-
-This **must** be a cleaned csv, do this in a spreadsheet. The end goal is to create two CSVs, one with covariates called 'covar.csv' and one with phenotypes called 'pheno.csv' in the 'inputs-processed' folder. 
-
-This can be done any number of ways, but the code below fully processes a phenotype file of the following format:
-
-- csv format
-- sample IDs in the first column
-- NAs must be from the following list: ["na","NA","N/A",""]
-- No duplicate sample IDs
-- All columns the same length
-- columns of covariates start in the second column, phenotypes follow covariates
-- There MUST be a "sex" and "ngen" column (exact spelling) included as part of the covariates. 
-- *important* first row is empty except for two things:
-  --'covariate' label in B1 position
-  --'phenotype' label over first phenotype column
-  -- No merging or other extraneous formatting
-
-
-```{r install/load necessary packages}
+```{r libraries and packages}
 library(DBI)
 library(httr)
 library(qtl2)
@@ -410,6 +29,20 @@ library(data.table)
 library(qtl2convert)
 ```
 
+# Code Source
+
+Load in custom functions
+
+```{r Code Source}
+source("./custom/changeRN.R")
+source("./custom/covCheck.R")
+source("./custom/enrichRMod.R")
+source("./custom/robustZmat.R")
+```
+
+# Zero Arm: Set up Project Environment
+
+In an empty project folder, place a copy of the DO_pipe markdown and run the 'Setup Project Environment'.
 
 ```{r Setup Project Environment}
 #Check if markdown is in project folder
@@ -438,6 +71,33 @@ while(is.null(prefix)){
 }
 
 ```
+The folder architecture for your project is set up.
+Add the following input files into the ./inputs folder:
+
+  1. Final Report - must have the term "report" somewhere in the   file name. E.g. DOWL_finalreport.txt
+
+  2. MUGA Folder - either MM or GM based on your study 
+
+  3. Mouse_genes.sqlite - provided
+
+  4. Master Phenotype - must have the term "pheno" somewhere in   the file name. E.g. DOWL_masterPheno.csv. 
+
+This **must** be a cleaned csv, do this in a spreadsheet. The end goal is to create two CSVs, one with covariates called 'covar.csv' and one with phenotypes called 'pheno.csv' in the 'inputs-processed' folder. 
+
+This can be done any number of ways, but the code below fully processes a phenotype file of the following format:
+
+- csv format
+- sample IDs in the first column
+- NAs must be from the following list: ["na","NA","N/A",""]
+- No duplicate sample IDs
+- All columns the same length
+- columns of covariates start in the second column, phenotypes follow covariates
+- There MUST be a "sex" and "ngen" column (exact spelling) included as part of the covariates. 
+- *important* first row is empty except for two things:
+  --'covariate' label in B1 position
+  --'phenotype' label over first phenotype column
+  -- No merging or other extraneous formatting
+
 
 # First Arm: Phenotype Diagnostic
 
