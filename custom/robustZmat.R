@@ -1,3 +1,5 @@
+#Use heatmap.2 to generate heatmap of robustZscores for each phenotype. Quickly spot outliers and their robust z-score positions across your phenotypes. 
+#zoom = TRUE zooms in on rows and columns that contain robust Z scores > 7. 
 robustZmat <- function(phen, 
                        rowFont = 2,
                        colFont =2,
