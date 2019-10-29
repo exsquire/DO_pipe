@@ -120,7 +120,27 @@ To quit interactive R session, do not save the session:
 - covar.rds in local *./scan-inputs*
 
 
-
 ### 4. Permutation Thresholds (cluster)
+
+Within your project folder, create a ./permutations subdirectory and upload the following files to it:
+- theDirector.R
+- DO_PIPE_scryptic.sh
+- permUtil.R
+
+theDirector pulls apr, cross, kLOCO, covar, and prefix from *../outputs* and generates controller.rds file and batchArg.txt for DO_PIPE_scryptic. 
+
+DO_PIPE_scryptic sets up the permutation array run architecture, R code, and bash script
+
+permUtil sticks the permutation outfiles together.
+
+1. From within *./permutations*, run the following on the command line to open interactive R and call theDirector
+
+> module load R\
+> srun --mem=60000 --time=10:00:00 --partition=high --pty R
+> source("theDirector")
+
+Note the estimated time to completion 
+
+
 ### 5. Genome Scan and Pathway Enrichment Analysis
 
