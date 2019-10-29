@@ -155,10 +155,13 @@ cd $(echo '$OUTPUT_DIR')
 cp -p $(echo '$SCR_DIR')/*.rds .
 
 #Routine Scratch Cleanup
-rm -rf $(echo '$SCR_DIR')/*
+rm -rf $(echo '$SCR_DIR')
 
 #print out scratch contents to confirm removal
-ls -al $(echo '$SCR_DIR')/*
+if [ -d $(echo '/scratch/$USER') ];
+then
+    ls -al $(echo '/scratch/$USER')
+fi
 
 echo "End of program at $(echo '`date`')"
 END
