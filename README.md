@@ -76,13 +76,10 @@ This next section takes place entirely on the FARM and involves both **R** and *
 2. From the custom folder, upload genScanInputs.sh into the project directory
 3. Make the script executable and run it, filling in your study prefix and email where noted
 
-> chmod 755 ./genScanInputs
-
-> ./genScanInputs -p PREFIX -e EMAIL
-
-> cd scripts
-
-> sbatch runBatch.sh
+> chmod 755 ./genScanInputs\
+> ./genScanInputs -p PREFIX -e EMAIL\
+> cd scripts\
+> sbatch runBatch.sh\
 
 4. FARM will email you when job starts and finishes (approx. 20-60 minutes)
 5. Confirm creation of gprRaw.rds in *./outputs*
