@@ -23,7 +23,7 @@ Begin by creating a project folder and placing the DO_PIPE.rmd file inside. Foll
 
 ### 0. Project Setup
 
-*{r Set up Project Environment}*
+*{r Setup Project Environment}*
 - Run chunk 
 - In console: Designate study prefix, e.g. DOWL, DO2, DOmoms
 - Inspect new project folder architecture
@@ -31,42 +31,69 @@ Begin by creating a project folder and placing the DO_PIPE.rmd file inside. Foll
 
 ### 1. Phenotype Diagnostic (local)
 
-* {r Pheno Process}
-** Run chunk 
-** In console: Change subject IDs in master_pheno is desired
-** Inspect pheno.csv and covar.csv in ./inputs-processed 
+*{r Pheno Process}*
+- Run chunk 
+- In console: Change subject IDs in master_pheno is desired
+- Inspect pheno.csv and covar.csv in *./inputs-processed* 
 
-* {r Pheno Diag}
-** Run chunk
-** Inspect diagnostics plots in ./diagnostic/phenotypes
-** Adjust pdf dimensions, margins, and font sizes as needed and re-run chunk
+*{r Pheno Diag}*
+- Run chunk
+- Inspect diagnostics plots in *./diagnostic/phenotypes*
+- Adjust pdf dimensions, margins, and font sizes as needed and re-run chunk
 
 ### 2. Generate Genotype Files (local)
 
-* {r Process Final Report}
-** Run chunk
-** In console: Choose to append study prefix 
-** Confirm (but do not open) processed_finrep.txt in ./inputs-processed
+*{r Process Final Report}*
+- Run chunk
+- In console: Choose to append study prefix 
+- Confirm (but do not open) processed_finrep.txt in *./inputs-processed*
 
-* {r Generate Genotype Files}
-** Run chunk 
-** Inspect genotype files in ./inputs-processed/genotypes
+*{r Generate Genotype Files}*
+- Run chunk 
+- Inspect genotype files in *./inputs-processed/genotypes*
 
-* {r Create Control File}
-** Run chunk
-** Inspect control.json file in ./inputs-processed
+*{r Create Control File}*
+- Run chunk
+- Inspect control.json file in *./inputs-processed*
 
-* {r Generate Cross2}
-** Run Chunk
-** Some individuals may be excluded for missing data (this is normal) 
-** Inspect the cross-summary.txt in ./diagnostic
+*{r Generate Cross2}*
+- Run Chunk
+- Some individuals may be excluded for missing data (this is normal) 
+- Inspect the cross-summary.txt in *./diagnostic*
 
-* {r Generate Covariate Object}
-** Run Chunk
-** In console: Select covariates to for genome scan
-** In console: Enter 'covar' to inspect design matrix
+*{r Generate Covariate Object}*
+- Run Chunk
+- In console: Select covariates to for genome scan
+- In console: Enter 'covar' to inspect design matrix
 
 ### 3. Genotype Diagnostic (cluster)
+
+This next section takes place entirely on the FARM and involves both **R** and **UNIX**. 
+
+*Setup Project Environment and Generate GPR*
+
+1. Create a project directory
+2. From the custom folder, upload genScanInputs.sh into the project directory
+3. Make the script executable and run it, filling in your study prefix and email where noted
+
+> chmod 755 ./genScanInputs
+> ./genScanInputs -p PREFIX -e EMAIL
+> cd scripts
+> sbatch runBatch.sh
+
+4. FARM will email you when job starts and finishes (approx. 20-60 minutes)
+5. Confirm creation of gprRaw.rds in *./outputs*
+
+*Run Diagnostic Pipeline*
+
+1. In the project directory ./inputs folder, add the following files from your local directory:
+- prefix.rds in local *./inputs*
+- allelecodes.csv in local *./inputs/MUGA*
+- processed_finrep.txt in local *./inputs-processed*
+- covar.rds in local *./scan-inputs*
+
+
+
 ### 4. Permutation Thresholds (cluster)
 ### 5. Genome Scan and Pathway Enrichment Analysis
 
