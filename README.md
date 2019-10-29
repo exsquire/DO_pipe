@@ -136,7 +136,7 @@ permUtil sticks the permutation outfiles together.
 1. From within *./permutations*, run the following on the command line to open interactive R and call theDirector
 
 > module load R\
-> srun --mem=60000 --time=10:00:00 --partition=high --pty R
+> srun --mem=60000 --time=10:00:00 --partition=high --pty R\
 > source("theDirector")
 
 Note the estimated time to completion 
