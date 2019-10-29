@@ -1,12 +1,13 @@
 #Covariate check, visualizes potential batch effects in phenotypes data using covariate data 
 covCheck <- function(cov, phen,
+                     prefix = "",
                      maxLev = 5,
                      pdfWid = 100, 
                      pdfHei = 100,
                      margins = c(100,80),
                      rowFont = 15,
                      colFont = 10,                  
-                     path=paste0(getwd(),"/BatchEff_Pheno.pdf")){
+                     path=paste0(getwd())){
   library(gplots)
   #cov should be a dataframe
   if(!is.data.frame(cov)){
@@ -26,7 +27,7 @@ covCheck <- function(cov, phen,
       cat("Converting factors to characters.\n")
       cov[,sapply(cov,is.factor)] <- sapply(cov[,sapply(cov,is.factor)],as.character)
     }
-
+    
     #Transform covar into dummy variables 
     dumDown <- function(x, maxLev = 5){
       numLev <- length(unique(x))
@@ -84,7 +85,7 @@ covCheck <- function(cov, phen,
   gradCol <- colorRampPalette(c("firebrick1",
                                 "gray85"))(n=2)
   
-  pdf(path,
+  pdf(paste0(path,"/",prefix,"_BatchEff_Pheno.pdf"),
       width = pdfWid, height = pdfHei)
   par(mar=c(1,1,1,1))
   heatmap.2(batchMat,Rowv=NA, Colv=NA, 

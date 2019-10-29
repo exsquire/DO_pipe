@@ -1,6 +1,7 @@
 #Use heatmap.2 to generate heatmap of robustZscores for each phenotype. Quickly spot outliers and their robust z-score positions across your phenotypes. 
 #zoom = TRUE zooms in on rows and columns that contain robust Z scores > 7. 
 robustZmat <- function(phen, 
+                       prefix="",
                        rowFont = 2,
                        colFont =2,
                        margins = c(35,15),
@@ -58,7 +59,7 @@ robustZmat <- function(phen,
                                   "orange2",
                                   "firebrick1"))(n=length(colBreaks)-1)
     
-    pdf(paste0(path,"/RobZmat_Full.pdf"), width = pdfWid, height = pdfHei)
+    pdf(paste0(path,"/",prefix,"_RobZmat_Full.pdf"), width = pdfWid, height = pdfHei)
     par(mar=c(1,1,1,1))
     heatmap.2(zMat,Rowv=NA, Colv=NA, 
               dendrogram = "none",
@@ -107,7 +108,7 @@ robustZmat <- function(phen,
                                   "orange2",
                                   "firebrick1"))(n=length(colBreaks)-1)
     
-    pdf(paste0(path,"/RobZmat_Zoom.pdf"), width = pdfWid, height = pdfHei)
+    pdf(paste0(path,"/",prefix,"_RobZmat_Zoom.pdf"), width = pdfWid, height = pdfHei)
     par(mar=c(1,1,1,1))
     heatmap.2(subZmat,
               cellnote = round(subZmat,2), #add values
@@ -138,4 +139,3 @@ robustZmat <- function(phen,
     
   }
 }
-
