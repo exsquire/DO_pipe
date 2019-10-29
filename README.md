@@ -127,7 +127,7 @@ Within your project folder, create a ./permutations subdirectory and upload the 
 - DO_PIPE_scryptic.sh
 - permUtil.R
 
-theDirector pulls apr, cross, kLOCO, covar, and prefix from *../outputs* and generates controller.rds file and batchArg.txt for DO_PIPE_scryptic. 
+theDirector pulls apr, cross, and kLOCO from *../outputs* and covar and prefix from *../inputs/* then generates controller.rds file and batchArg.txt for DO_PIPE_scryptic. 
 
 DO_PIPE_scryptic sets up the permutation array run architecture, R code, and bash script
 
