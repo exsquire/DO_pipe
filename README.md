@@ -79,9 +79,36 @@ This next section takes place entirely on the FARM and involves both **R** and *
 > chmod 755 ./genScanInputs\
 > ./genScanInputs -p PREFIX -e EMAIL\
 > cd scripts\
-> sbatch runBatch.sh\
+> sbatch runBatch.sh
 
 4. FARM will email you when job starts and finishes (approx. 20-60 minutes)
+*While you wait*
+
+We will be using interactive R script to run certain aspects of the analysis, this is how to open an R session on FARM:
+
+>module load R\
+>srun --mem=60000 --time=10:00:00 --pty R
+
+To run the diagnostic, your personal R library will need the following packages installed:
+
+-- install.packages(“fst”)
+-- install.packages(“qtl2”)
+-- install.packages(“dplyr”)
+-- install.packages(“pryr”)
+-- install.packages(“tibble”) 
+-- install.packages(“ggpubr”)
+-- install.packages(“ggplot2”)
+-- install.packages(“ggrepel”)
+-- install.packages(“broman”)
+-- install.packages(“qtlcharts”)
+-- install.packages(“gridExtra”)
+-- install.packages(“data.table”)
+
+To quit interactive R session, do not save the session:
+
+> q()
+
+
 5. Confirm creation of gprRaw.rds in *./outputs*
 
 *Run Diagnostic Pipeline*
