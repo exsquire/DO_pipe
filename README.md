@@ -21,7 +21,7 @@ Begin by creating a project folder and placing the DO_PIPE.rmd file inside. Foll
 
 ## Project Arms: 
 
-### Project Setup
+### 0. Project Setup
 
 * {r Set up Project Environment}
 ** Run chunk 
@@ -29,7 +29,7 @@ Begin by creating a project folder and placing the DO_PIPE.rmd file inside. Foll
 ** Inspect new project folder architecture
 ** Add input files and format master_phenotypes.csv according to the instructions in the markdown
 
-### Phenotype Diagnostic (local)
+### 1. Phenotype Diagnostic (local)
 
 * {r Pheno Process}
 ** Run chunk 
@@ -41,7 +41,7 @@ Begin by creating a project folder and placing the DO_PIPE.rmd file inside. Foll
 ** Inspect diagnostics plots in ./diagnostic/phenotypes
 ** Adjust pdf dimensions, margins, and font sizes as needed and re-run chunk
 
-### Generate Genotype Files
+### 2. Generate Genotype Files (local)
 
 * {r Process Final Report}
 ** Run chunk
@@ -66,7 +66,7 @@ Begin by creating a project folder and placing the DO_PIPE.rmd file inside. Foll
 ** In console: Select covariates to for genome scan
 ** In console: Enter 'covar' to inspect design matrix
 
-### Genotype Diagnostic (cluster)
-### Permutation Thresholds (cluster)
-### Genome Scan and Pathway Enrichment Analysis
+### 3. Genotype Diagnostic (cluster)
+### 4. Permutation Thresholds (cluster)
+### 5. Genome Scan and Pathway Enrichment Analysis
 
