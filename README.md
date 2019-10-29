@@ -70,7 +70,7 @@ Begin by creating a project folder and placing the DO_PIPE.rmd file inside. Foll
 
 This next section takes place entirely on the FARM and involves both **R** and **UNIX**. 
 
-*Setup Project Environment and Generate GPR*
+#### *Setup Project Environment and Generate GPR*
 
 1. Create a project directory
 2. From the custom folder, upload genScanInputs.sh into the project directory
@@ -82,7 +82,7 @@ This next section takes place entirely on the FARM and involves both **R** and *
 > sbatch runBatch.sh
 
 4. FARM will email you when job starts and finishes (approx. 20-60 minutes)
-*While you wait*
+#### *While you wait*
 
 We will be using interactive R script to run certain aspects of the analysis, this is how to open an R session on FARM:
 
@@ -111,7 +111,7 @@ To quit interactive R session, do not save the session:
 
 5. Confirm creation of gprRaw.rds in *./outputs*
 
-*Run Diagnostic Pipeline*
+#### *Run Diagnostic Pipeline*
 
 1. In the project directory ./inputs folder, add the following files from your local directory:
 - prefix.rds in local *./inputs*
