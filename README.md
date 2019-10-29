@@ -91,18 +91,18 @@ We will be using interactive R script to run certain aspects of the analysis, th
 
 To run the diagnostic, your personal R library will need the following packages installed:
 
--- install.packages(“fst”)
--- install.packages(“qtl2”)
--- install.packages(“dplyr”)
--- install.packages(“pryr”)
--- install.packages(“tibble”) 
--- install.packages(“ggpubr”)
--- install.packages(“ggplot2”)
--- install.packages(“ggrepel”)
--- install.packages(“broman”)
--- install.packages(“qtlcharts”)
--- install.packages(“gridExtra”)
--- install.packages(“data.table”)
+- install.packages(“fst”)
+- install.packages(“qtl2”)
+- install.packages(“dplyr”)
+- install.packages(“pryr”)
+- install.packages(“tibble”) 
+- install.packages(“ggpubr”)
+- install.packages(“ggplot2”)
+- install.packages(“ggrepel”)
+- install.packages(“broman”)
+- install.packages(“qtlcharts”)
+- install.packages(“gridExtra”)
+- install.packages(“data.table”)
 
 To quit interactive R session, do not save the session:
 
