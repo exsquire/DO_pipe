@@ -23,11 +23,11 @@ Begin by creating a project folder and placing the DO_PIPE.rmd file inside. Foll
 
 ### 0. Project Setup
 
-* {r Set up Project Environment}
-** Run chunk 
-** In console: Designate study prefix, e.g. DOWL, DO2, DOmoms
-** Inspect new project folder architecture
-** Add input files and format master_phenotypes.csv according to the instructions in the markdown
+*{r Set up Project Environment}*
+- Run chunk 
+- In console: Designate study prefix, e.g. DOWL, DO2, DOmoms
+- Inspect new project folder architecture
+- Add input files and format master_phenotypes.csv according to the instructions in the markdown
 
 ### 1. Phenotype Diagnostic (local)
 
