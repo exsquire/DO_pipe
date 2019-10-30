@@ -48,7 +48,7 @@ if(length(failed) != 0){
 }else{
   permMat <- quiltR(pathIn)
   saveRDS(permMat, file = paste0(prefix,"_fullPerm.rds"))
-  permThreh <- apply(permMat, 2, quantile, probs = c(0.63, 0.95, 0.99))
+  permThresh <- apply(permMat, 2, quantile, probs = c(0.63, 0.95, 0.99))
   saveRDS(permThresh, file = paste0(prefix, "_permThresh.rds"))          
 }
 
