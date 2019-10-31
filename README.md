@@ -14,10 +14,14 @@ This pipeline involves "local" processing in RStudio and "remote" processing on 
 - Cyberduck or knowledge of scp
 
 ## Getting Started:
-
 Refer to this README alongside the documentation in the DO_PIPE R markdown. Subheaders of the README refer to specific code chunks in the markdown - in RStudio you can navigate between chunks using the drop down menu in the bottom left of the markdown file. Sometimes running the chunk is all that is required, but sometimes the user is prompted for input in the RStudio console. After running each chunk, the outputs should be inspected for completeness and correctness. 
 
 Begin by creating a project folder and placing the DO_PIPE.rmd file inside. Follow the directions below. 
+
+### Custom Scripts
+DO_pipe will call a number of custom scripts available at: https://github.com/exsquire/DO_pipe
+Use the green "Clone or download" button on the righthand side to clone or download the contents of the git repository.
+Place the "custom" folder in the project directory.
 
 ## Project Arms: 
 
@@ -76,8 +80,8 @@ This next section takes place entirely on the FARM and involves both **R** and *
 2. From the custom folder, upload genScanInputs.sh into the project directory
 3. Make the script executable and run it, filling in your study prefix and email where noted - your cluster folder structure will be made for you.
 
-> chmod 755 ./genScanInputs\
-> ./genScanInputs -p PREFIX -e EMAIL\
+> chmod 755 ./genScanInputs.sh\
+> ./genScanInputs.sh -p PREFIX -e EMAIL\
 > cd scripts\
 > sbatch runBatch.sh
 
@@ -130,28 +134,115 @@ To quit interactive R session, do not save the session:
 
 > source("cleanotype.R")
 
+Allow program to run to completion.
+
+6. Inspect the contents of *./cleanotype/output*
+- Check Perc_Miss_Plot for missing genotyping data per sample
+- Check dupeDiag plot for possible duplication errors
+- Check sexDiag for sex misclassification errors or XO females
+- See: https://kbroman.org/qtl2/assets/vignettes/do_diagnostics.html for information on the other plots
+- *./cleanotype/output/objects* holds the intermediate data files for plot generation 
 
 ### 4. Permutation Thresholds (cluster)
 
-Within your project folder, create a ./permutations subdirectory and upload the following files to it:
+1. Within your project folder, create a ./permutations subdirectory and upload the following custom files to it:
 - theDirector.R
 - DO_PIPE_scryptic.sh
 - permUtil.R
 
-theDirector pulls apr, cross, and kLOCO from *../outputs* and covar and prefix from *../inputs/* then generates controller.rds file and batchArg.txt for DO_PIPE_scryptic. 
+theDirector pulls apr, cross, and kLOCO from *../outputs* and covar and prefix from *../inputs/* then generates controller.rds file and batchArg.txt, allowing DO_PIPE_scryptic to request adequate cluster resources for splitting the permutations among an array jobs. 
 
-DO_PIPE_scryptic sets up the permutation array run architecture, R code, and bash script
+DO_PIPE_scryptic sets up the folder architecture, R code, and sbatch script for the permutation array run.
 
-permUtil sticks the permutation outfiles together.
+Array jobs create many output files, permUtil sticks them together.
 
-1. From within *./permutations*, run the following on the command line to open interactive R and call theDirector
+2. From within *./permutations*, run the following on the command line to open interactive R and call theDirector
 
 > module load R\
 > srun --mem=60000 --time=10:00:00 --partition=high --pty R\
+
+3. From Interactive R
+
 > source("theDirector")
 
-Note the estimated time to completion 
+Note the estimated time to completion. 
 
+> q()
+
+Don't save. 
+
+4. From command line, run the following to begin permutation analysis
+
+> chmod 755 DO_PIPE_scryptic.sh\
+> ./DO_PIPE_scryptic.sh\
+> cd scripts\
+> sbatch run.sh #For now, personal email functionality is limited. If comfortable with bash, email can be changed in ./run.sh\
+> squeue -u USERNAME #to check your runs
+
+After the first round of permutations (~10-30 minutes) download one of the files from *./permutations/outputs* and inspect in RStudio.
+Allow runs to complete.
+
+5. When job is complete, run the following commands from *./permutations/scripts*
+
+> module load R\
+> srun --mem=60000 --time=05:00:00 --partition=high --pty R
+
+6. From Interactive R
+
+> source("permUtil.R")
+
+permUtil will place the following files in your project *./outputs* folder:
+- **fullPerm.rds**: The full permutation matrix of your run. Can be used to calculate individual significant thresholds at desired quantiles
+- **permThresh.rds**: Infividual permutations thresholds at 0.63, 0.9, and 0.95 quantiles. 
+
+If permUtil alerts you to failed runs, re-run *run.sh* from *./permutations/scripts*, submitting the failed arrayIDs
+ex.) 
+> sbatch --array=2,10,1337,1338 ./run.sh
+
+See: https://slurm.schedmd.com/job_array.html for more details on array jobs.
+
+7. Download the following files from the project *./outputs* directory to your local *./scan-inputs* directory
+- apr_Clean.rds
+- cross_Clean.rds
+- kLOCO_Clean.rds
+- fullPerm.rds
+- permThresh.rds
 
 ### 5. Genome Scan and Pathway Enrichment Analysis
+
+*{r Run Scan}*
+- Run chunk
+
+*{r Find QTL}* 
+- Modify probs vector if desired. Default is c(0.63, 0.9, and 0.95) 
+- Run Chunk 
+- Inspect peak files in *./outputs/data* at different levels of significance
+
+*{r Visualize all peaks}*
+- Select path to desired peak file 
+- We do not plot peaks on the X chromosome by default
+- Plots can be inspected in *./outputs/plots/lod*
+- To run other peaks, move plots to separate folder to prevent overwritting, change *peaks* and re-run chunk
+- peakSummary.png shows global architecture of QTL
+
+*{r Find Candidate Genes}*
+For finding candidate genes within the QTL, we use the full set of Mouse gene annotations made available at:
+https://kbroman.org/qtl2/assets/vignettes/user_guide.html#snp_association
+Direct Link: 
+https://doi.org/10.6084/m9.figshare.5280238.v6
+
+We query the database, looking for all non-predicted genes within the confidence interval of the peaks.
+- Run Chunk
+- Candidate genes stored in *./outputs/data/peak-genes*
+
+*{r Enrichr Query}*
+
+A structural variant of any one of the genes within the QTL could be responsible for the variance in phenotypic expression. It could also be multiple genes working together. 
+
+The final step in our QTL pipeline is to check if any of the genes within our QTL are involved in (aka "enriched for") any validated gene sets. This can link genes to genomes, biological pathways, metabolites, drugs, diseases, microbes, and chemical compunds. 
+
+We access the Ma'ayan Laboratory's tool, Enrichr, using methods from the enrichR package (https://cran.r-project.org/web/packages/enrichR/index.html), which queries multiple gene databases looking for gene set enrichment. 
+
+- Defaults to searching all Enrichr libraries
+- Can modify dbs to search specific libraries or add specific libraries to the dbNonGrata vector to exclude libraries
 
