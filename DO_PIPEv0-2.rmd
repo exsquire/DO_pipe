@@ -392,16 +392,16 @@ apr <- readRDS(paste0("./scan-inputs/",prefix,"_apr_Clean.rds"))
 cross <- readRDS(paste0("./scan-inputs/",prefix,"_cross_Clean.rds"))
 kLOCO <- readRDS(paste0("./scan-inputs/",prefix,"_kLOCO_Clean.rds"))
 covar <- readRDS(paste0("./scan-inputs/",prefix,"_covar.rds"))
-permThresh <- readRDS(paste0("./scan-inputs/",prefix,"_permThresh.rds"))
+permMat <- readRDS("./scan-inputs/DOWL_fullPerm.rds")
+
 #If your study has differing sexes, they must be submitted as a covariate AND an Xcovar argument
-#Scan takes approx 4 sec/phenotype at 6 cores
-system.time(
+
 scanOut <- scan1(apr, cross$pheno, 
                  kinship = kLOCO, 
                  addcovar = covar, 
                  Xcovar = get_x_covar(cross),
-                 cores = 6)
-)
+                 cores = 4)
+
 saveRDS(scanOut, file = paste0("./outputs/data/",prefix, "_scanOut.rds"))
 ```
 
@@ -425,7 +425,7 @@ Source: https://www.genetics.org/content/174/1/481.long
 ```{r Find QTL}
 #Select threshold level: 1 = 63% (associative), 2 = 95% (significant), 3 = 99% (highly significant)
 #If different thresholds are required, they can be generated from the full permutation matrix
-permMat <- readRDS("./scan-inputs/DOWL_fullPerm.rds")
+
 permThresh <- apply(permMat, 2, quantile, probs = c(0.63, 0.9, 0.95, 0.99))
 #IMPORTANT: align the order of the permThresh columns with the scanOut columns
 permThresh <- permThresh[,match(colnames(scanOut), colnames(permThresh))]
