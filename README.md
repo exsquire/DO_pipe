@@ -123,8 +123,14 @@ To quit interactive R session, do not save the session:
 3. Within *./cleanotype*, make *./output* and *./scripts* subdirectories (do not misspell)
 4. From *./cleanotype/scripts*, enter the following commands for an interactive R session:
 
-> module load R
+> module load R\
 > srun --mem=60000 --time=10:00:00 --partition=high --pty R
+
+5. From Interactive R
+
+> source("cleanotype.R")
+
+
 ### 4. Permutation Thresholds (cluster)
 
 Within your project folder, create a ./permutations subdirectory and upload the following files to it:
