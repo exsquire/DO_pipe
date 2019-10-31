@@ -74,7 +74,7 @@ This next section takes place entirely on the FARM and involves both **R** and *
 
 1. Create a project directory
 2. From the custom folder, upload genScanInputs.sh into the project directory
-3. Make the script executable and run it, filling in your study prefix and email where noted
+3. Make the script executable and run it, filling in your study prefix and email where noted - your cluster folder structure will be made for you.
 
 > chmod 755 ./genScanInputs\
 > ./genScanInputs -p PREFIX -e EMAIL\
@@ -113,13 +113,18 @@ To quit interactive R session, do not save the session:
 
 #### *Run Diagnostic Pipeline*
 
-1. In the project directory ./inputs folder, add the following files from your local directory:
+1. In the project directory ./inputs subdirectory, add the following files from your local directory:
 - prefix.rds in local *./inputs*
 - allelecodes.csv in local *./inputs/MUGA*
 - processed_finrep.txt in local *./inputs-processed*
 - covar.rds in local *./scan-inputs*
 
+2. Within the project directory, make *./cleanotype* subdirectory
+3. Within *./cleanotype*, make *./output* and *./scripts* subdirectories (do not misspell)
+4. From *./cleanotype/scripts*, enter the following commands for an interactive R session:
 
+> module load R
+> srun --mem=60000 --time=10:00:00 --partition=high --pty R
 ### 4. Permutation Thresholds (cluster)
 
 Within your project folder, create a ./permutations subdirectory and upload the following files to it:
