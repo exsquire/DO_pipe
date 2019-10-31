@@ -10,6 +10,9 @@ library(data.table)
 rm(list=ls())
 cat("\nCalling script: sexDiag.R\n")
 
+#Set threshold for robust Z filtering
+robZthresh <- 7
+
 #Run script from folder with the 3 input files 
 #Form a list of filepaths where [[1]] == cross2, 
 #[[2]] == codes, and [[3]] == Final Report
@@ -131,10 +134,10 @@ intDF$phetX <- phetX[match(rownames(intDF),names(phetX))]
 flag <- character()
 for(i in unique(intDF$sex)){
   tmp <- intDF[intDF$sex == i,]
-  xthresh_hi <- median(tmp$Xavg) + (7*mad(tmp$Xavg))
-  xthresh_lo <- median(tmp$Xavg) - (7*mad(tmp$Xavg))
-  ythresh_hi <- median(tmp$Yavg) + (7*mad(tmp$Yavg))
-  ythresh_lo <- median(tmp$Yavg) - (7*mad(tmp$Yavg))
+  xthresh_hi <- median(tmp$Xavg) + (robZthresh *mad(tmp$Xavg))
+  xthresh_lo <- median(tmp$Xavg) - (robZthresh *mad(tmp$Xavg))
+  ythresh_hi <- median(tmp$Yavg) + (robZthresh *mad(tmp$Yavg))
+  ythresh_lo <- median(tmp$Yavg) - (robZthresh *mad(tmp$Yavg))
   
   flag <- unique(c(flag, rownames(tmp[which(tmp$Xavg >= xthresh_hi |
                                               tmp$Xavg <= xthresh_lo |
@@ -161,10 +164,10 @@ a <- ggplot(intDF, aes(x = Xavg, y = Yavg, color = sex))+
 flag2 <- character()
 for(i in unique(intDF$sex)){
   tmp <- intDF[intDF$sex == i,]
-  xthresh_hi <- median(tmp$Xavg) + (7*mad(tmp$Xavg))
-  xthresh_lo <- median(tmp$Xavg) - (7*mad(tmp$Xavg))
-  phetXthresh_hi <- median(tmp$phetX) + (7*mad(tmp$phetX))
-  phetXthresh_lo <- median(tmp$phetX) - (7*mad(tmp$phetX))
+  xthresh_hi <- median(tmp$Xavg) + (robZthresh *mad(tmp$Xavg))
+  xthresh_lo <- median(tmp$Xavg) - (robZthresh *mad(tmp$Xavg))
+  phetXthresh_hi <- median(tmp$phetX) + (robZthresh *mad(tmp$phetX))
+  phetXthresh_lo <- median(tmp$phetX) - (robZthresh *mad(tmp$phetX))
   
   flag2 <- unique(c(flag2, rownames(tmp[which((tmp$Xavg >= xthresh_hi |
                                                  tmp$Xavg <= xthresh_lo) | (
