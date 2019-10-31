@@ -176,7 +176,7 @@ Don't save.
 > chmod 755 DO_PIPE_scryptic.sh\
 > ./DO_PIPE_scryptic.sh\
 > cd scripts\
-> sbatch run.sh #For now, personal email functionality is limited. If comfortable with bash, email can be changed in ./run.sh\
+> sbatch run.sh #For now, personal email functionality is limited.\
 > squeue -u USERNAME #to check your runs
 
 After the first round of permutations (~10-30 minutes) download one of the files from *./permutations/outputs* and inspect in RStudio.
