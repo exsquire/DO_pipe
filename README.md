@@ -96,15 +96,16 @@ This next section takes place entirely on the FARM and involves both **R** and *
 #### *Setup Project Environment and Generate GPR*
 
 1. Create a project directory
-2. From the custom folder, upload genScanInputs.sh into the project directory
-3. Make the script executable and run it, filling in your study prefix and email where noted - your cluster folder structure will be made for you.
+2. From the *./custom*, upload genScanInputs.sh into the project directory
+3. From *./scan-inputs*, upload cross2 object into project directory
+4. Make the script executable and run it, filling in your study prefix and email where noted - your cluster folder structure will be made for you.
 
 > chmod 755 ./genScanInputs.sh\
 > ./genScanInputs.sh -p PREFIX -e EMAIL\
 > cd scripts\
 > sbatch runBatch.sh
 
-4. FARM will email you when job starts and finishes (approx. 20-60 minutes)
+5. FARM will email you when job starts and finishes (approx. 20-60 minutes)
 #### *While you wait*
 
 We will be using interactive R script to run certain aspects of the analysis, this is how to open an R session on FARM:
@@ -132,7 +133,7 @@ To quit interactive R session, do not save the session:
 > q()
 
 
-5. Confirm creation of gprRaw.rds in *./outputs*
+6. Confirm creation of gprRaw.rds in *./outputs*
 
 #### *Run Diagnostic Pipeline*
 
