@@ -137,7 +137,7 @@ To quit interactive R session, do not save the session:
 
 #### *Run Diagnostic Pipeline*
 
-1. Within *./inputs*, add the following files from your local directory:
+1. Within *./inputs*, upload the following files from your local directory:
 - prefix.rds in local *./inputs*
 - allelecodes.csv in local *./inputs/MUGA*
 - processed_finrep.txt in local *./inputs-processed*
@@ -145,23 +145,37 @@ To quit interactive R session, do not save the session:
 
 2. Within the project directory, make *./cleanotype* subdirectory
 3. Within *./cleanotype*, make *./output* and *./scripts* subdirectories (do not misspell)
-4. From *./cleanotype/scripts*, enter the following commands for an interactive R session:
+4. Upload the following files from local *./custom* to *./scripts
+- sexDiag.R
+- cleanCross.R
+- computeScanInputs.R
+- cleanotype.R
+5. From *./cleanotype/scripts*, enter the following commands for an interactive R session:
 
 > module load R\
 > srun --mem=60000 --time=10:00:00 --partition=high --pty R
 
-5. From Interactive R
+6. From Interactive R
 
 > source("cleanotype.R")
 
 Allow program to run to completion.
 
-6. Inspect the contents of *./cleanotype/output*
+7. Inspect the contents of *./cleanotype/output*
 - Check Perc_Miss_Plot for missing genotyping data per sample
 - Check dupeDiag plot for possible duplication errors
 - Check sexDiag for sex misclassification errors or XO females
 - See: https://kbroman.org/qtl2/assets/vignettes/do_diagnostics.html for information on the other plots
 - *./cleanotype/output/objects* holds the intermediate data files for plot generation 
+
+8. Inspect the contents of *./outputs* in project folder, make sure you have the following files:
+- apr_Clean.rds
+- cross_Clean.rds
+- kLOCOC_Clean.rds
+
+9. Quit Interactive R - do not save
+
+> q()
 
 ### 4. Permutation Thresholds (cluster)
 
