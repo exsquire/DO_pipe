@@ -32,6 +32,14 @@ Place the unzipped contents in the project directory. Before you run code, your 
 
 ### 0. Project Setup
 
+*{r libraries and packages}
+- Run chunk
+- If you do not have one or more packages installed, install them now. 
+
+*{r Code Source}
+- Run chunk
+- If you receive an error, check that the "custom" folder is in the first level of your project folder
+
 *{r Setup Project Environment}*
 - Run chunk 
 - In console: Designate study prefix, e.g. DOWL, DO2, DOmoms
