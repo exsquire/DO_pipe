@@ -74,6 +74,8 @@ https://doi.org/10.6084/m9.figshare.5280238.v6
 - Inspect genotype files in *./inputs-processed/genotypes*
 
 *{r Create Control File}*
+- Ensure "sex_codes" argument matches sex designations in covariate file
+- e.g. sex_codes=c("f" = "Female"), if females are designated with "f"
 - Run chunk
 - Inspect control.json file in *./inputs-processed*
 
