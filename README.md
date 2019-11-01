@@ -91,7 +91,7 @@ https://doi.org/10.6084/m9.figshare.5280238.v6
 
 ### 3. Genotype Diagnostic (cluster)
 
-This next section takes place entirely on the FARM and involves both **R** and **UNIX**. 
+This next section takes place entirely on the FARM and involves both **R** and **UNIX**. All references to the "project directory" in this section refer to the one on the cluster. 
 
 #### *Setup Project Environment and Generate GPR*
 
@@ -137,7 +137,7 @@ To quit interactive R session, do not save the session:
 
 #### *Run Diagnostic Pipeline*
 
-1. In the project directory ./inputs subdirectory, add the following files from your local directory:
+1. Within *./inputs*, add the following files from your local directory:
 - prefix.rds in local *./inputs*
 - allelecodes.csv in local *./inputs/MUGA*
 - processed_finrep.txt in local *./inputs-processed*
