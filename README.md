@@ -24,7 +24,7 @@ DO_pipe will call a number of custom scripts available at: https://github.com/ex
 Use the green "Clone or download" button on the righthand side to clone or download the contents of the git repository.
 Place the unzipped contents in the project directory. Before you run code, your project folder should look like this:
 
-- /custom
+- /custom/
 - DO_PIPE.rmd
 - README.md
 
