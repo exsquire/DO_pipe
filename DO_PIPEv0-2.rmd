@@ -23,7 +23,7 @@ Please repeat the following mantra before proceeding:
 
 # A note on a NAS analysis paradigm
 
-The inputs and outputs of QTL analysis are large (5-10 Gb). The movement and storage of files can be a limiting factor. This pipeline is built to run based on a pre-specified folder structure. This means that it can be run on the NAS where storage is not a limiting factor and file transfer is much faster. If desired, specific outputs from the pipeline can be downloaded from the NAS to a local computer for processing. As a final benefit, performing all runs on the NAS allows data to be shared amongst lab members.
+The inputs and outputs of QTL analysis are large (5-10 Gb). The movement and storage of files can be a limiting factor. This pipeline is built to run based on a pre-specified folder structure. This means that it can be run on the NAS where storage is not a limiting factor and file transfer is much faster. Additionally, performing all runs on the NAS allows data to be shared amongst lab members.
 
 # Install/Load Required Packages
 
@@ -43,7 +43,7 @@ library(qtl2convert)
 
 # Code Source
 
-Load in custom functions
+Makes custom pipeline functions accessible
 
 ```{r Code Source}
 source("./custom/changeRN.R")
@@ -54,7 +54,8 @@ source("./custom/robustZmat.R")
 
 # Zero Arm: Set up Project Environment
 
-In an empty project folder, place a copy of the DO_pipe markdown and run the 'Setup Project Environment'.
+Sets up the project folder architecture within your project folder and designates a study prefix to label pipeline outputs. 
+
 
 ```{r Set up Project Environment}
 #Check if markdown is in project folder
@@ -81,16 +82,20 @@ while(is.null(prefix)){
 }
 ```
 
-The folder architecture for your project is set up.
-Add the following input files into the ./inputs folder:
+## Add input data to ./inputs
 
-  1. Final Report - must have the term "report" somewhere in the   file name. E.g. DOWL_finalreport.txt
+DO_Pipe only requires 4 input files. Now that the folder architecture for your project is set up,
+add the following input files into the ./inputs folder:
+
+  1. Final Report - must have the term "report" somewhere in the file name. 
+  E.g. DOWL_finalreport.txt
 
   2. MUGA Folder - either MM or GM based on your study 
 
   3. Mouse_genes.sqlite - provided
 
-  4. Master Phenotype - must have the term "pheno" somewhere in   the file name. E.g. DOWL_masterPheno.csv. 
+  4. Master Phenotype - must have the term "pheno" somewhere in the file name. 
+  E.g. DOWL_masterPheno.csv. 
 
 This **must** be a cleaned csv, do this in a spreadsheet. The end goal is to create two CSVs, one with covariates called 'covar.csv' and one with phenotypes called 'pheno.csv' in the 'inputs-processed' folder. 
 
@@ -118,21 +123,26 @@ phenStart <- which(read.csv(phenPath,
                             nrows=1,
                             fill = T, 
                             header = FALSE) != "")[-1]-1
+
+
+
 #Pull in phenotype file
 mPhen <- read.csv(phenPath, 
                   header = T,
                   row.names = 1,
                   na.strings = c("na","NA","N/A",""),
                   skip = 1)
+
 mPhen <- changeRN(mPhen)
+
 #Check phenotype and covariate subsets
-if(!all(sapply(mPhen[,c(phenStart:ncol(mPhen))],is.numeric))){
-  stop("You were about to put non-numeric data into the phenotype matrix. SHAME.\n")
+if(!all(sapply(mPhen[,c(phenStart[2]:ncol(mPhen))],is.numeric))){
+  stop("You were about to put non-numeric data into the phenotype matrix.")
 }
 #Write out the covar
-write.csv(mPhen[,c(1:phenStart-1)], file = paste0("./inputs-processed/",prefix,"_covar.csv"), row.names = T)
+write.csv(mPhen[,c(1:(phenStart[2]-1))], file = paste0("./inputs-processed/",prefix,"_covar.csv"), row.names = T)
 #Write out the pheno
-write.csv(mPhen[,c(phenStart:ncol(mPhen))], file = paste0("./inputs-processed/",prefix,"_pheno.csv"), row.names = TRUE)
+write.csv(mPhen[,c(phenStart[2]:ncol(mPhen))], file = paste0("./inputs-processed/",prefix,"_pheno.csv"), row.names = TRUE)
 ```
  
  
