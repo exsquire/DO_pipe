@@ -19,7 +19,7 @@ Refer to this README alongside the documentation in the DO_PIPE R markdown. Subh
 Begin by creating a project folder and placing the DO_PIPE.rmd file inside. Follow the directions below. 
 
 ### Custom Scripts
-DO_pipe will call a number of custom scripts available at: https://github.com/exsquire/DO_pipe
+DO_pipe will call a number of custom scripts available at: https://github.com/exsquire/DO_pipe\
 Use the green "Clone or download" button on the righthand side to clone or download the contents of the git repository.
 Place the "custom" folder in the project directory.
 
