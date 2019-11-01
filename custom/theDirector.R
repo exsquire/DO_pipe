@@ -3,9 +3,9 @@
 library(qtl2)
 
 pathIn <- list(
-  aprPath = list.files(path = "../outputs/",pattern = "apr", full.names = T, ignore.case = T),
-  crossPath = list.files(path = "../outputs/",pattern = "cross", full.names = T, ignore.case = T),
-  kinPath = list.files(path = "../outputs/", pattern = "kLOCO", full.names = T),
+  aprPath = list.files(path = "../outputs/",pattern = "apr_Clean", full.names = T, ignore.case = T),
+  crossPath = list.files(path = "../outputs/",pattern = "cross_Clean", full.names = T, ignore.case = T),
+  kinPath = list.files(path = "../outputs/", pattern = "kLOCO_Clean", full.names = T),
   covPath = list.files(path = "../inputs/", pattern = "covar", full.names = T, ignore.case = T),
   prefPath = list.files(path = "../inputs/", pattern = "prefix", full.names = T, ignore.case = T)
 )
