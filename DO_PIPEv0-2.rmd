@@ -125,7 +125,6 @@ phenStart <- which(read.csv(phenPath,
                             header = FALSE) != "")[-1]-1
 
 
-
 #Pull in phenotype file
 mPhen <- read.csv(phenPath, 
                   header = T,
@@ -334,6 +333,7 @@ for(chr in c(1:19,"X","Y","M")) {
 rm(codes, full_geno, g, geno, wh)
 ```
 
+
 ```{r Create Control File}
 #Note on the relative paths in this chunk: write_control_file() uses the .json location as the starting path. Paths to inputs are changed according.
 chr <- c(1:19, "X")
@@ -354,10 +354,12 @@ write_control_file(paste0("./inputs-processed/",prefix,"_control.json"),
                    pheno_file=paste0(prefix,"_pheno.csv"),
                    covar_file=paste0(prefix,"_covar.csv"),
                    sex_covar="sex",
-                   sex_codes=c("F" ="Female", "M" ="Male"),
+                   sex_codes=c("f" ="Female", "m" ="Male"),
                    overwrite=TRUE,
                    crossinfo_covar="ngen")
 ```
+
+
 
 ```{r Generate Cross2}
 #Generate cross
@@ -373,11 +375,11 @@ sink()
 ```
 
 ```{r Generate Covariate Object}
-cross2 <- readRDS("./scan-inputs/DOWL_cross2.rds")
+cross2 <- readRDS(paste0("./scan-inputs/",prefix,"_cross2.rds"))
 selCov <- select.list(colnames(cross2$covar), preselect = NULL, 
             multiple = TRUE,
             title = "Choose your covariates:")
-covar <- model.matrix(~ ., data = cross2$covar[selCov] )[, -1]
+covar <- as.matrix(model.matrix(~ ., data = cross2$covar[selCov] )[, -1])
 rownames(covar) <- rownames(cross2$covar)
 if(all(apply(covar, 2 ,function(x)length(unique(x))) <= 2)){
   colnames(covar) <- selCov
