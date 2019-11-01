@@ -46,7 +46,7 @@ Place the unzipped contents in the project directory. Before you run code, your 
 - Inspect new project folder architecture
 - Add input files and format master_phenotypes.csv according to the instructions in the markdown
 
-MUGA folders can be found on the qtl2 webstite under 'Founder Genotypes and SNP Maps': https://kbroman.org/qtl2/pages/prep_do_data.html
+MUGA folders can be found on the qtl2 webstite under 'Founder Genotypes and SNP Maps': https://kbroman.org/qtl2/pages/prep_do_data.html  
 Mouse_genes.sqlite database file can be found here: https://doi.org/10.6084/m9.figshare.5280238.v6
 
 ### 1. Phenotype Diagnostic (local)
