@@ -42,8 +42,8 @@ BATCHS="./run.sh"
 #--------------------------------------------------
 #Define Input Name Variables
 APR=$(ls ../outputs | grep -i apr_Clean)
-CROSS=$(ls ../outputs | grep -i cross)
-KLOCO=$(ls ../outputs | grep -i kloco)
+CROSS=$(ls ../outputs | grep -i cross_Clean)
+KLOCO=$(ls ../outputs | grep -i kLOCO_Clean)
 COVAR=$(ls ../inputs | grep -i covar)
 PREFIX=$(ls ../inputs | grep -i prefix)
 CONTROL=$(ls ./ | grep -i control)
