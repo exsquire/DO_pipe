@@ -193,7 +193,7 @@ Array jobs create many output files, permUtil sticks them together.
 2. From within *./permutations*, run the following on the command line to open interactive R and call theDirector
 
 > module load R\
-> srun --mem=60000 --time=10:00:00 --partition=high --pty R\
+> srun --mem=60000 --time=10:00:00 --partition=high --pty R
 
 3. From Interactive R
 
