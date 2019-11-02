@@ -404,15 +404,14 @@ apr <- readRDS(paste0("./scan-inputs/",prefix,"_apr_Clean.rds"))
 cross <- readRDS(paste0("./scan-inputs/",prefix,"_cross_Clean.rds"))
 kLOCO <- readRDS(paste0("./scan-inputs/",prefix,"_kLOCO_Clean.rds"))
 covar <- readRDS(paste0("./scan-inputs/",prefix,"_covar.rds"))
-permMat <- readRDS("./scan-inputs/DOWL_fullPerm.rds")
+permMat <- readRDS(paste0("./scan-inputs/",prefix,"_fullPerm.rds"))
 
 #If your study has differing sexes, they must be submitted as a covariate AND an Xcovar argument
 
 scanOut <- scan1(apr, cross$pheno, 
                  kinship = kLOCO, 
                  addcovar = covar, 
-                 Xcovar = get_x_covar(cross),
-                 cores = 4)
+                 Xcovar = get_x_covar(cross))
 
 saveRDS(scanOut, file = paste0("./outputs/data/",prefix, "_scanOut.rds"))
 ```
@@ -462,7 +461,7 @@ for(i in 1:nrow(permThresh)){
 
 ```{r Visualize all peaks}
 #Choose a peak file to analyze. 
-peaks <- readRDS("./outputs/data/DOWL_peaks_signif_63.rds")
+peaks <- readRDS(paste0("./outputs/data/",prefix,"_peaks_signif_63.rds"))
 #Remove x chromosome peaks, then loop plot from the outfile
 peaks_noX <- peaks[peaks$chr != "X",]
 cat("Generating",nrow(peaks_noX),"plots...")
