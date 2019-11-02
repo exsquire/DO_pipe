@@ -33,11 +33,11 @@ quiltR <- function(pathIn){
 }
 
 #quiltR for DO_pipe
-pathIn <- "./outputs"
+pathIn <- "../outputs"
 prefix <- readRDS("../../inputs/prefix.rds")
 
 #Load in batchArgs.txt
-numJobs <- as.numeric(unlist(strsplit(readLines("batchArgs.txt", warn = F), split = " "))[2])
+numJobs <- as.numeric(unlist(strsplit(readLines("../inputs/batchArgs.txt", warn = F), split = " "))[2])
 
 
 
@@ -47,8 +47,8 @@ if(length(failed) != 0){
   stop(paste0("Uh oh! The following jobs failed:\n", failed,"\nRe-run them and try again.\n"))
 }else{
   permMat <- quiltR(pathIn)
-  saveRDS(permMat, file = paste0(prefix,"_fullPerm.rds"))
+  saveRDS(permMat, file = paste0("../../outputs/",prefix,"_fullPerm.rds"))
   permThresh <- apply(permMat, 2, quantile, probs = c(0.63, 0.95, 0.99))
-  saveRDS(permThresh, file = paste0(prefix, "_permThresh.rds"))          
+  saveRDS(permThresh, file = paste0("../../outputs/",prefix, "_permThresh.rds"))          
 }
 
