@@ -44,7 +44,15 @@ numJobs <- as.numeric(unlist(strsplit(readLines("../inputs/batchArgs.txt", warn 
 failed <- missingNo(pathIn, numJobs)
 
 if(length(failed) != 0){
-  stop(paste0("Uh oh! The following jobs failed:\n", failed,"\nRe-run them and try again.\n"))
+  cat("Uh oh! The following jobs failed:\n")
+  cat(failed, sep = ",")
+  vec=paste(as.character(failed), collapse=",")
+  sink("failed.txt")
+  cat(vec)
+  cat("\n")
+  sink()
+  cat("\nWriting file 'failed.txt' to working directory.\n")
+  stop("Resubmit sbatch with --array=`cat failed.txt`\n")
 }else{
   permMat <- quiltR(pathIn)
   saveRDS(permMat, file = paste0("../../outputs/",prefix,"_fullPerm.rds"))
