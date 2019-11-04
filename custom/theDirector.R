@@ -40,10 +40,10 @@ for(i in 1:4){
   invisible(gc(reset = T))
   t <- system.time(
     scan1perm(apr, cross$pheno[,2,drop = F],
-                     kinship = kLOCO, 
-                     addcovar = covar,
-                     n_perm = nPerm[i],
-                     cores = ncores)
+              kinship = kLOCO, 
+              addcovar = covar,
+              n_perm = nPerm[i],
+              cores = ncores)
   )
   memList[[i]]<- sum(gc()[,6])
   timeList[[i]]<- as.numeric(t["elapsed"])
@@ -74,8 +74,12 @@ while(1000 %% tryPerm != 0){
 timEst <- predict(fit, data.frame(perms = tryPerm)) * 2
 #Overestimate the maxMem allocation by 10% and round up to nearest gig. 
 memEst <- ceiling((max(res$maxMem) * 1.1)/1000)*1000
+
+#Use memEst*4cores/maxCoreMem to determine the number of cores to request
+needCores <- ceiling(memEst*4/2500)
+
 #Estimate the number of parallelisms based on estimate memory use and max group limits
-parJobs <- floor(250000/(memEst*4))
+parJobs <- floor(250000/(needCores * 2500))
 totJobs <- ncol(cross$pheno)*(1000/tryPerm)
 jobMin <- ceiling(timEst/60)
 runTime <- ceiling(totJobs*jobMin/parJobs)
@@ -84,8 +88,8 @@ runTime <- ceiling(totJobs*jobMin/parJobs)
 cat("Assuming [" ,totJobs, "] jobs, run [",
     parJobs, "] at a time, \nwith each job lasting [", 
     jobMin, "] minutes, \nthe total array will complete in ~ [", 
-     paste0(floor(runTime/60), " hr ",
-            floor((runTime/60 - floor(runTime/60))*60), " min"), "] minutes.\n")
+    paste0(floor(runTime/60), " hr ",
+           floor((runTime/60 - floor(runTime/60))*60), " min"), "] minutes.\n")
 
 timeOut <- paste0(formatC(ceiling(timEst/60/60),width = 2, flag = "0"),":00:00")
 
@@ -118,6 +122,6 @@ sink("batchArgs.txt")
 cat(tryPerm, 
     ncol(cross$pheno) * (1000/tryPerm),
     timeOut,
-    memEst)
+    needCores)
 sink()
 
