@@ -29,9 +29,9 @@ LOC=$(pwd) #Location of scryptic.sh
 PERMS=`cat batchArgs.txt | cut -d " " -f 1`
 ARRAY=`cat batchArgs.txt | cut -d " " -f 2`
 TIME=`cat batchArgs.txt | cut -d " " -f 3`
-MEM=`cat batchArgs.txt | cut -d " " -f 4`
+CORES=`cat batchArgs.txt | cut -d " " -f 4`
 
-if [[ -z $ARRAY || -z $TIME || -z $MEM || -z $PERMS ]]; then
+if [[ -z $ARRAY || -z $TIME || -z $CORES || -z $PERMS ]]; then
   echo 'one or more permutation arguments are undefined'
   exit 1
 fi
@@ -105,8 +105,8 @@ cat <<END > $BATCHS
 
 #SBATCH -J permArray
 #SBATCH -N 1
-#SBATCH -c 4
-#SBATCH --mem-per-cpu=$MEM
+#SBATCH -c $CORES
+#SBATCH --mem-per-cpu=2500
 #SBATCH --array=1-$ARRAY
 #SBATCH --partition=high
 #SBATCH --time=$TIME
@@ -177,7 +177,6 @@ cp -p $(echo '$SCR_DIR')/*_perm_* .
 
 #Routine Scratch Cleanup
 rm -dr $(echo '$SCR_DIR')
-ls -la $(echo '/scratch/$USER')
 
 echo "End of program at $(echo '`date`')"
 END
