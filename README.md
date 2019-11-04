@@ -227,11 +227,11 @@ Allow runs to complete.
 
 permUtil will place the following files in your project *./outputs* folder:
 - **fullPerm.rds**: The full permutation matrix of your run. Can be used to calculate individual significant thresholds at desired quantiles
-- **permThresh.rds**: Infividual permutations thresholds at 0.63, 0.9, and 0.95 quantiles. 
+- **permThresh.rds**: Individual permutations thresholds at 0.63, 0.9, and 0.95 quantiles. 
 
 If permUtil alerts you to failed runs, re-run *run.sh* from *./permutations/scripts*, submitting the failed arrayIDs
-ex.) 
-> sbatch --array=2,10,1337,1338 ./run.sh
+ 
+> ex.) sbatch --array=2,10,1337,1338 ./run.sh
 
 See: https://slurm.schedmd.com/job_array.html for more details on array jobs.
 
@@ -259,7 +259,8 @@ See: https://slurm.schedmd.com/job_array.html for more details on array jobs.
 - To run other peaks, move plots to separate folder to prevent overwritting, change *peaks* and re-run chunk
 - peakSummary.png shows global architecture of QTL
 
-*{r Find Candidate Genes}*
+*{r Find Candidate Genes}*  
+
 For finding candidate genes within the QTL, we use the full set of Mouse gene annotations made available at:
 https://kbroman.org/qtl2/assets/vignettes/user_guide.html#snp_association
 Direct Link: 
