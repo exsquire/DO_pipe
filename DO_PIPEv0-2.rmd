@@ -122,7 +122,7 @@ phenPath <- list.files("./inputs/", pattern = "pheno", ignore.case = T, full.nam
 phenStart <- which(read.csv(phenPath,
                             nrows=1,
                             fill = T, 
-                            header = FALSE) != "")[-1]-1
+                            header = FALSE) != "")-1
 
 
 #Pull in phenotype file
