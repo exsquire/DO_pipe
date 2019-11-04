@@ -4,12 +4,7 @@ author: "Excel Que"
 date: "October 28, 2019"
 output: html_document
 ---
----
-title: "DO_PIPEv0.1"
-author: "Excel Que"
-date: "October 15, 2019"
-output: html_document
----
+
 # README
 
 This is the latest version of the DO_PIPE qtl pipeline. The markdown file should be read alongside the DO_PIPE Instructional pdf. Several measures have been taken to simplify a sophisticated multi-arm process and reduce sources of user error, as long as the instructions are followed in order. Unless you already understand every line of code (you don't), do not skip over sections. 
