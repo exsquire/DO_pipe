@@ -84,7 +84,7 @@ stop  <- ctrl[arrayid, 3]
 is_x_chr <- attr(apr, "is_x_chr")
 perm <- scan1perm(apr[,!is_x_chr],
                   $(echo 'cross$pheno[, start:stop, drop = FALSE]'),
-                  kinship = kLOCO,
+                  kinship = subset_kinship(kLOCO, chr = !is_x_chr),
                   addcovar = covar,
                   cores = 4, 
                   n_perm = $PERMS)
