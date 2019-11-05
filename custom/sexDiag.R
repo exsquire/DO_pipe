@@ -193,7 +193,7 @@ b <- ggplot(intDF, aes(x = Xavg, y = phetX, color = sex))+
 
 
 dir.create("../output/plots")
-intDF <- saveRDS(intDF, paste0("../output/objects/",prefix,"_sexDiagData.rds"))
+saveRDS(intDF, paste0("../output/objects/",prefix,"_sexDiagData.rds"))
 
 ggarrange(a,b, 
           ncol = 1, nrow = 2, 
