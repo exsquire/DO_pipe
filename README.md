@@ -233,6 +233,10 @@ If permUtil alerts you to failed runs, re-run *run.sh* from *./permutations/scri
  
 > ex.) sbatch --array=2,10,1337,1338 ./run.sh
 
+Or alternatively, use the failed.txt file produced by permUtil
+
+> ex.) sbatch --array=`cat failed.txt` ./run.sh
+
 See: https://slurm.schedmd.com/job_array.html for more details on array jobs.
 
 7. Download the following files from the project *./outputs* directory to your local *./scan-inputs* directory
