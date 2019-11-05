@@ -7,14 +7,11 @@ output: html_document
 
 # README
 
-This is the latest version of the DO_PIPE qtl pipeline. The markdown file should be read alongside the DO_PIPE Instructional pdf. Several measures have been taken to simplify a sophisticated multi-arm process and reduce sources of user error, as long as the instructions are followed in order. Unless you already understand every line of code (you don't), do not skip over sections. 
+This is the latest version of the quantitative trait loci analysis (QTL) pipeline for Diversity Outbred mice, DO_pipe. The pipeline is built to perform QTL analysis on clinical phenotype data and is not yet optimized for expression data. The repository should be cloned and downloaded into a project folder. Run the code from the R Markdown according to the instructions in the GitHub Markdown. 
 
-Please repeat the following mantra before proceeding: 
+Several measures have been taken to simplify a complicated, multi-arm process and reduce sources of user error/variation by building the project directory architecture for the user. DO_pipe expects specific inputs and sends specific outputs to specific locations. While using the pipeline, users will become familiar with what goes where and when. 
 
-    1. "Ignorance is a choice". 
-    2. "If I get an error, I will stop and get help."
-    3. "If I proceed anyways, I will be referred to #1."
-
+The modularity of the different arms means that experienced users can modify inputs at specific pipeline junctions and use the tool as a convenience wrapper for submitting jobs to the research cluster. It is highly suggested that you run through the entire pipeline at least once, following all directions and understanding the workflow, before making any modifications.  
 
 # A note on a NAS analysis paradigm
 
