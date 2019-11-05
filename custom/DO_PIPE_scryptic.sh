@@ -90,9 +90,9 @@ subset_kinship <-
         if(!is.null(ind)) {
             # maybe it's not really needing to be subset by individual
             if(is_kinship_list(kinship)) {
-                k_ind <- rownames(kinship[[1]]$vectors)
+                k_ind <- rownames($(echo 'kinship[[1]]$vectors'))
             } else {
-                k_ind <- rownames(kinship$vectors)
+                k_ind <- rownames($(echo 'kinship$vectors'))
             }
             new_ind <- subset_ind(ind, k_ind)
             if(length(new_ind) != length(k_ind) ||
