@@ -538,22 +538,24 @@ for(i in 1:nrow(inPeaks)){
   lookUp <- genes %>%  
     filter(chr == tmp_chr &
            type == "gene" &
-           source == "MGI" &
-           !str_detect(Name, "Gm") &    
-           !str_detect(str_to_lower(description), 
-                       "riken") &    
+           source == "MGI" &  
            start > tmp_start*10^6 &
            stop < tmp_stop*10^6) %>% #Get your rows
-    select(-ID, 
+    dplyr::select(-ID, 
            -score, 
            -phase, 
            -Parent, 
            -Dbxref, 
            -gene_id) %>% #Get your columns
     collect()
-  saveRDS(lookUp, 
+  
+  lookUp <- lookUp[!grepl("^Gm",lookUp$Name),]
+  lookUp <- lookUp[!grepl("riken",tolower(lookUp$description)),]
+  if(nrow(lookUp) != 0){
+     saveRDS(lookUp, 
           file =paste0("./outputs/data/peak-genes/",
                        desig,".rds"))
+  }
 }
 #Close database connection
 dbDisconnect(con)
