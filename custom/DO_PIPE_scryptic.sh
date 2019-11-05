@@ -81,6 +81,7 @@ start <- ctrl[arrayid, 2]
 stop  <- ctrl[arrayid, 3]
 
 #Run scan1perm for autosomes only
+is_x_chr <- attr(apr, "is_x_chr")
 perm <- scan1perm(apr[,!is_x_chr],
                   $(echo 'cross$pheno[, start:stop, drop = FALSE]'),
                   kinship = kLOCO,
