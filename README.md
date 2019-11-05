@@ -171,7 +171,7 @@ Allow program to run to completion.
 8. Inspect the contents of *./outputs* in project folder, make sure you have the following files:
 - apr_Clean.rds
 - cross_Clean.rds
-- kLOCOC_Clean.rds
+- kLOCO_Clean.rds
 
 9. Quit Interactive R - do not save
 
