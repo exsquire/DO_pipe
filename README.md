@@ -235,7 +235,7 @@ If permUtil alerts you to failed runs, re-run *run.sh* from *./permutations/scri
 
 Or alternatively, use the failed.txt file produced by permUtil
 
-> ex.) sbatch --array=`cat failed.txt` ./run.sh
+> ex.) sbatch --array=\`cat failed.txt\` ./run.sh
 
 See: https://slurm.schedmd.com/job_array.html for more details on array jobs.
 
