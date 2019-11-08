@@ -57,17 +57,20 @@ enrichrMod <- function (genes, databases = as.character(listEnrichrDbs()[["libra
   if(any(sapply(res,is.null))){
     res <- res[sapply(res,is.null) != TRUE]
   }
-  sigRes <- res[sapply(res, nrow) != 0]
-  
-  outList <- list()
-  for(j in 1:length(sigRes)){
-    desig <- names(sigRes)[j]
-    outList[[j]] <- cbind(data.frame(Library = desig,
+    
+  if(sum(sapply(res, nrow)) == 0){
+    return(NULL)
+  }else{
+    sigRes <- res[sapply(res, nrow) != 0]
+    outList <- list()
+    for(j in 1:length(sigRes)){
+        desig <- names(sigRes)[j]
+        outList[[j]] <- cbind(data.frame(Library = desig,
                                      stringsAsFactors = F),
                           sigRes[[j]])
-    
+    }
+    return(do.call("rbind",outList))
   }
-  return(do.call("rbind",outList))
 }
 
 
