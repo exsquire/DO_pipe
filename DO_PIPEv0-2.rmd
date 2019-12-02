@@ -450,6 +450,8 @@ for(i in 1:nrow(permThresh)){
 }
 ```
 
+**Note**
+The following visualization chunk works for a single peak file. If making plots for multiple peak files, run the chunk and move all outputs into a separately designated plot folder. e.g. "signif63", "signif95", etc. 
 
 ```{r Visualize all peaks}
 #Choose a peak file to analyze. 
