@@ -451,7 +451,7 @@ for(i in 1:nrow(permThresh)){
 ```
 
 **Note**
-The following visualization chunk works for a single peak file. If making plots for multiple peak files, run the chunk and move all outputs into a separately designated plot folder. e.g. "signif63", "signif95", etc. 
+Visualizing the peak file with the lowest significance will include all peaks in files with higher significance. DO_pipe individually labels each lod plot with all significance levels less than or equal to the peak lod. 
 
 ```{r Visualize all peaks}
 #Choose a peak file to analyze. 
@@ -462,14 +462,31 @@ cat("Generating",nrow(peaks_noX),"plots...")
 pb <- txtProgressBar(min = 1, 
                      max = nrow(peaks_noX), 
                      style = 3)
+
 for(i in 1:nrow(peaks_noX)){
+  #tmp out peak
   tmp <- peaks_noX[i,]
+  
+  #scavenge tmp
   desig <- paste0(tmp$lodcolumn,"-",
                   "chr",tmp$chr,
                   "-",floor(tmp$ci_lo),
                   "-",ceiling(tmp$ci_hi))
   pheno <- which(colnames(scanOut) == tmp$lodcolumn)
   chr <- tmp$chr
+  peak <- tmp$lod
+  
+  #Build peak-specific threshold object
+  threshPos <- numeric()
+  for(j in grep("^signif_",names(tmp))){
+    #abline and text
+    if(tmp$lod >= tmp[[j]]){
+      threshPos <- c(threshPos, tmp[j])
+    }
+  }
+  threshPos <- unlist(threshPos)
+  
+  #plotting
   png(paste0("./outputs/plots/lod/",desig,".png"),
       res = 300,
       height = 1600,
@@ -481,9 +498,18 @@ for(i in 1:nrow(peaks_noX)){
              bgcol="white",
              main = tmp$lodcolumn,
              cex = 1.5)
+  
+  #peak-specific threshold annotation loop 
+  for(k in seq_along(threshPos)){
+    #threshold h line with signif in margins
+    abline(h = threshPos[k], col = "red", lty = 2)
+    mtext(paste0(" ",gsub("^.*_","0.",names(threshPos)[k])), side = 4, at = threshPos[k], las = 2)
+  }
+  
   dev.off()
   setTxtProgressBar(pb, i)
 }
+
 close(pb)
 cat("Generating Global Peak Summary Plot...")
 png(paste0("./outputs/plots/lod/",prefix,"_peakSummary",".png"),
